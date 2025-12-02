@@ -102,7 +102,11 @@ function setupEventListeners() {
 
     // Timeline Events
     window.addEventListener('resize', drawTimeline);
-    els.timelineCanvas.addEventListener('click', handleTimelineClick);
+    els.timelineCanvas.addEventListener('mousedown', handleTimelineMouseDown);
+    els.timelineCanvas.addEventListener('mousemove', handleTimelineMove);
+    els.timelineCanvas.addEventListener('mouseup', handleTimelineMouseUp);
+    // Remove click listener as we are using mousedown/up
+    // els.timelineCanvas.addEventListener('click', handleTimelineClick);
 }
 
 // ... existing code ...
@@ -176,21 +180,95 @@ function drawTimeline() {
     ctx.fill();
 }
 
-function handleTimelineClick(e) {
+let isDragging = false;
+
+function handleTimelineMouseDown(e) {
     if (state.duration <= 0) return;
 
+    const time = getTimeFromEvent(e);
+
+    // If we already have a start point and we are not dragging, this click is the End point (Click-Move-Click flow)
+    if (state.currentStart !== null && !isDragging) {
+        finishSelection(time);
+        return;
+    }
+
+    // Otherwise, start a new selection (Drag flow or First Click)
+    state.currentStart = time;
+    isDragging = true;
+
+    // Update UI
+    els.startTimeVal.textContent = formatTime(state.currentStart);
+    els.startMarkerDisplay.classList.remove('hidden');
+    els.btnMarkEnd.disabled = false;
+
+    // Seek video
+    seekVideo(time);
+    updateTime(time);
+}
+
+function handleTimelineMove(e) {
+    if (state.duration <= 0) return;
+
+    // Sync if dragging OR if we have a start point pending (Click-Move-Click hover)
+    if (isDragging || state.currentStart !== null) {
+        const time = getTimeFromEvent(e);
+        seekVideo(time);
+        updateTime(time);
+    }
+}
+
+function handleTimelineMouseUp(e) {
+    if (!isDragging) return;
+    isDragging = false;
+
+    if (state.duration <= 0) return;
+
+    const time = getTimeFromEvent(e);
+
+    // If dragged significantly, finish selection (Drag flow)
+    if (Math.abs(time - state.currentStart) > 0.5) {
+        finishSelection(time);
+    }
+    // If it was just a click (distance small), we leave state.currentStart set.
+    // The user is now in "Click-Move-Click" mode.
+}
+
+function finishSelection(endTime) {
+    let start = state.currentStart;
+    let end = endTime;
+
+    // Ensure end is after start
+    if (end < start) {
+        [start, end] = [end, start];
+    }
+
+    // Create Segment
+    const segment = { start, end };
+    state.segments.push(segment);
+
+    // Reset
+    state.currentStart = null;
+    els.startMarkerDisplay.classList.add('hidden');
+    els.btnMarkEnd.disabled = true;
+
+    renderSegments();
+    drawTimeline();
+}
+
+function getTimeFromEvent(e) {
     const rect = els.timelineCanvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
-    const percentage = x / rect.width;
-    const time = percentage * state.duration;
+    const percentage = Math.max(0, Math.min(1, x / rect.width));
+    return percentage * state.duration;
+}
 
+function seekVideo(time) {
     if (state.mode === 'upload') {
         els.mainVideo.currentTime = time;
     } else if (state.mode === 'youtube' && state.youtubePlayer) {
         state.youtubePlayer.seekTo(time, true);
     }
-
-    updateTime(time);
 }
 
 function updateTime(time) {

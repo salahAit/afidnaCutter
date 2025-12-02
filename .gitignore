@@ -3,3 +3,5 @@ dist/
 .DS_Store
 .env
 uploads/
+*.log
+build_error.log
