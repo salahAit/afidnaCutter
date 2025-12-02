@@ -1,5 +1,7 @@
+import { v4 as uuidv4 } from 'uuid';
+
 export const appState = $state({
-    mode: 'youtube', // 'youtube' or 'upload'
+    mode: 'upload', // 'youtube' or 'upload'
     videoSrc: null,
     videoFilename: null,
     sessionId: null,
@@ -19,4 +21,13 @@ export function formatTime(seconds) {
     const sec = Math.floor(seconds % 60);
     const ms = Math.floor((seconds % 1) * 100);
     return `${min}:${sec.toString().padStart(2, '0')}.${ms.toString().padStart(2, '0')}`;
+}
+
+export function addSegment(start, end) {
+    appState.segments.push({ id: uuidv4(), start, end });
+    sortSegments();
+}
+
+export function sortSegments() {
+    appState.segments.sort((a, b) => a.start - b.start);
 }

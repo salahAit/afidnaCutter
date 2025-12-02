@@ -1,5 +1,5 @@
 <script>
-    import { appState, formatTime } from "./lib/state.svelte.js";
+    import { appState, formatTime, addSegment } from "./lib/state.svelte.js";
 
     function togglePlay() {
         if (appState.mode === "upload") {
@@ -38,10 +38,11 @@
             return;
         }
 
-        appState.segments.push({
-            start: appState.currentStart,
-            end: appState.currentTime,
-        });
+        addSegment(appState.currentStart, appState.currentTime);
+        appState.currentStart = null;
+    }
+
+    function cancelStart() {
         appState.currentStart = null;
     }
 </script>
@@ -124,6 +125,12 @@
             disabled={appState.currentStart === null}
             onclick={markEnd}>تحديد النهاية [O]</button
         >
+        {#if appState.currentStart !== null}
+            <button
+                class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg"
+                onclick={cancelStart}>إلغاء</button
+            >
+        {/if}
     </div>
 
     {#if appState.currentStart !== null}

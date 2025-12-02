@@ -19,7 +19,7 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "dev": "concurrently \"vite\" \"NODE_ENV=development electron .\"",
+    "dev": "./node_modules/.bin/vite & ./node_modules/.bin/wait-on http://localhost:5173 && NODE_ENV=development electron .",
     "build": "vite build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -27,10 +27,12 @@
     "@sveltejs/vite-plugin-svelte": "^6.2.1",
     "@tailwindcss/vite": "^4.1.17",
     "concurrently": "^9.2.1",
-    "electron": "^33.0.0",
+    "daisyui": "^5.5.5",
+    "electron": "^39.2.4",
     "svelte": "^5.45.3",
     "tailwindcss": "^4.1.17",
-    "vite": "^6.4.1"
+    "vite": "^7.2.6",
+    "wait-on": "^9.0.3"
   },
   "dependencies": {
     "fluent-ffmpeg": "^2.1.3",

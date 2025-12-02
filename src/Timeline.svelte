@@ -1,9 +1,20 @@
 <script>
     import { onMount } from "svelte";
-    import { appState, formatTime } from "./lib/state.svelte.js";
+    import {
+        appState,
+        formatTime,
+        addSegment,
+        sortSegments,
+    } from "./lib/state.svelte.js";
 
     let canvas;
     let isDragging = false;
+    let dragStartTime = 0;
+
+    // Resizing State
+    let resizingSegmentIndex = -1;
+    let resizingEdge = null; // 'start' or 'end'
+    const EDGE_THRESHOLD_PX = 5;
 
     function drawTimeline() {
         if (!canvas) return;
@@ -30,33 +41,68 @@
             ctx.fillRect(startX, height / 2 - 4, segWidth, 8);
         });
 
-        // Draw Current Start Marker
+        // Draw Current Start Marker (Manual Mode)
         if (appState.currentStart !== null) {
             const startX = (appState.currentStart / appState.duration) * width;
-
-            // Highlight from start to current cursor (preview)
             const currentX = (appState.currentTime / appState.duration) * width;
+            drawHighlight(
+                ctx,
+                startX,
+                currentX,
+                height,
+                "rgba(245, 158, 11, 0.3)",
+                "#f59e0b",
+                "البداية",
+            );
+        }
 
-            // Determine range to highlight
+        // Draw Drag Selection (Drag Mode)
+        if (
+            isDragging &&
+            Math.abs(appState.currentTime - dragStartTime) > 0.5
+        ) {
+            const startX = (dragStartTime / appState.duration) * width;
+            const currentX = (appState.currentTime / appState.duration) * width;
+            drawHighlight(
+                ctx,
+                startX,
+                currentX,
+                height,
+                "rgba(59, 130, 246, 0.3)",
+                "#3b82f6",
+                "",
+            );
+        }
+
+        function drawHighlight(
+            ctx,
+            startX,
+            endX,
+            height,
+            fillColor,
+            lineColor,
+            label,
+        ) {
             let hStart = startX;
-            let hWidth = currentX - startX;
+            let hWidth = endX - startX;
 
             if (hWidth < 0) {
-                hStart = currentX;
-                hWidth = startX - currentX;
+                hStart = endX;
+                hWidth = startX - endX;
             }
 
-            ctx.fillStyle = "rgba(245, 158, 11, 0.3)"; // Warning with opacity
+            ctx.fillStyle = fillColor;
             ctx.fillRect(hStart, height / 2 - 4, hWidth, 8);
 
-            // Marker Line
-            ctx.fillStyle = "#f59e0b"; // Warning color
+            // Marker Line at Start
+            ctx.fillStyle = lineColor;
             ctx.fillRect(startX - 1, 0, 2, height);
 
-            // Label
-            ctx.font = "10px Cairo";
-            ctx.fillStyle = "#f59e0b";
-            ctx.fillText("البداية", startX + 4, 12);
+            if (label) {
+                ctx.font = "10px Cairo";
+                ctx.fillStyle = lineColor;
+                ctx.fillText(label, startX + 4, 12);
+            }
         }
 
         // Draw Playhead
@@ -112,29 +158,79 @@
         }
     }
 
+    function getHoveredEdge(time) {
+        const width = canvas.width;
+        const pxPerSec = width / appState.duration;
+        const thresholdSec = EDGE_THRESHOLD_PX / pxPerSec;
+
+        for (let i = 0; i < appState.segments.length; i++) {
+            const seg = appState.segments[i];
+            if (Math.abs(time - seg.start) < thresholdSec)
+                return { index: i, edge: "start" };
+            if (Math.abs(time - seg.end) < thresholdSec)
+                return { index: i, edge: "end" };
+        }
+        return null;
+    }
+
     function handleMouseDown(e) {
         if (appState.duration <= 0) return;
 
         const time = getTimeFromEvent(e);
 
-        if (appState.currentStart !== null && !isDragging) {
-            finishSelection(time);
+        // Check for resize first
+        const hover = getHoveredEdge(time);
+        if (hover) {
+            resizingSegmentIndex = hover.index;
+            resizingEdge = hover.edge;
+            isDragging = true; // Use same flag or separate? Let's reuse but distinguish via resizingSegmentIndex
+            appState.isDragging = true;
             return;
         }
 
-        appState.currentStart = time;
+        dragStartTime = time;
         isDragging = true;
-        appState.isDragging = true; // Global state if needed
+        appState.isDragging = true;
 
+        // Always seek on click
         seekVideo(time);
         appState.currentTime = time;
     }
 
     function handleMouseMove(e) {
         if (appState.duration <= 0) return;
+        const time = getTimeFromEvent(e);
 
-        if (isDragging || appState.currentStart !== null) {
-            const time = getTimeFromEvent(e);
+        // Hover effect
+        if (!isDragging) {
+            const hover = getHoveredEdge(time);
+            canvas.style.cursor = hover ? "ew-resize" : "pointer";
+            return;
+        }
+
+        if (resizingSegmentIndex !== -1) {
+            // Handle Resizing
+            const seg = appState.segments[resizingSegmentIndex];
+            if (resizingEdge === "start") {
+                // Constrain: 0 <= start < end
+                const newStart = Math.max(0, Math.min(time, seg.end - 0.1));
+                seg.start = newStart;
+            } else {
+                // Constrain: start < end <= duration
+                const newEnd = Math.min(
+                    appState.duration,
+                    Math.max(time, seg.start + 0.1),
+                );
+                seg.end = newEnd;
+            }
+            // Real-time seek to show frame
+            seekVideo(time);
+            appState.currentTime = time;
+            return;
+        }
+
+        // Handle Selection Drag
+        if (isDragging) {
             seekVideo(time);
             appState.currentTime = time;
         }
@@ -142,6 +238,19 @@
 
     function handleMouseUp(e) {
         if (!isDragging) return;
+
+        if (resizingSegmentIndex !== -1) {
+            // Finish Resizing
+            resizingSegmentIndex = -1;
+            resizingEdge = null;
+            isDragging = false;
+            appState.isDragging = false;
+            // Sort after resize to keep order
+            // Import sortSegments if needed or trigger it via state
+            // We need to import sortSegments in script
+            return;
+        }
+
         isDragging = false;
         appState.isDragging = false;
 
@@ -149,21 +258,36 @@
 
         const time = getTimeFromEvent(e);
 
-        if (Math.abs(time - appState.currentStart) > 0.5) {
-            finishSelection(time);
+        // If dragged significantly, create a segment
+        if (Math.abs(time - dragStartTime) > 0.5) {
+            finishSelection(time, dragStartTime);
         }
     }
 
-    function finishSelection(endTime) {
-        let start = appState.currentStart;
+    function finishSelection(endTime, startTime = appState.currentStart) {
+        if (startTime === null) return;
+
+        let start = startTime;
         let end = endTime;
 
         if (end < start) {
             [start, end] = [end, start];
         }
 
-        appState.segments.push({ start, end });
-        appState.currentStart = null;
+        addSegment(start, end);
+        appState.currentStart = null; // Reset manual start if it was set
+    }
+
+    function handleMouseLeave() {
+        if (isDragging && resizingSegmentIndex !== -1) {
+            // Commit resize on leave? Or just stop dragging?
+            // For now just stop
+            resizingSegmentIndex = -1;
+            resizingEdge = null;
+            isDragging = false;
+            appState.isDragging = false;
+            sortSegments();
+        }
     }
 </script>
 
@@ -176,5 +300,6 @@
         onmousedown={handleMouseDown}
         onmousemove={handleMouseMove}
         onmouseup={handleMouseUp}
+        onmouseleave={handleMouseLeave}
     ></canvas>
 </div>

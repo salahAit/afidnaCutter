@@ -95,7 +95,11 @@ const handlers = {
                 ffmpeg(inputPath)
                     .setStartTime(start)
                     .setDuration(end - start)
+                    .outputOptions(['-c copy'])
                     .output(outputPath)
+                    .on('start', (commandLine) => {
+                        console.log('Spawned Ffmpeg with command: ' + commandLine);
+                    })
                     .on('end', () => resolve())
                     .on('error', (err) => reject(err))
                     .run();
