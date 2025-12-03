@@ -1,7 +1,10 @@
 <script>
-  import { appState } from "./lib/state.svelte.js";
+  import { appState, formatTime } from "./lib/state.svelte.js";
 
   let videoElement;
+  let hoverTime = $state(0);
+  let tooltipLeft = $state(0);
+  let isHovering = $state(false);
 
   function handleTimeUpdate() {
     if (videoElement) {
@@ -32,6 +35,14 @@
       videoElement.currentTime = newTime;
     }
     appState.currentTime = newTime;
+  }
+
+  function handleMouseMove(e) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const percentage = x / rect.width;
+    hoverTime = percentage * (appState.duration || 0);
+    tooltipLeft = x;
   }
 </script>
 
@@ -88,7 +99,23 @@
   {#if appState.videoSrc}
     <div
       class="absolute bottom-0 left-0 right-0 px-4 py-4 bg-gradient-to-t from-black/90 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20"
+      onmousemove={handleMouseMove}
+      onmouseenter={() => (isHovering = true)}
+      onmouseleave={() => (isHovering = false)}
+      role="slider"
+      aria-valuenow={appState.currentTime}
+      tabindex="0"
     >
+      <!-- Tooltip -->
+      {#if isHovering}
+        <div
+          class="absolute bottom-12 bg-black/80 text-white text-xs px-2 py-1 rounded border border-white/20 pointer-events-none transform -translate-x-1/2 font-mono"
+          style="left: {tooltipLeft}px"
+        >
+          {formatTime(hoverTime)}
+        </div>
+      {/if}
+
       <input
         type="range"
         min="0"
