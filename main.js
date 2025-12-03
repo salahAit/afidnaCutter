@@ -24,11 +24,14 @@ const createWindow = () => {
     } else {
         win.loadFile(path.join(__dirname, 'dist/index.html'));
     }
+    return win
 }
 
 app.whenReady().then(() => {
     registerProtocol(require('electron').protocol);
-    createWindow()
+    const win = createWindow()
+    const { createMenu } = require('./menu');
+    createMenu(win);
 
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {

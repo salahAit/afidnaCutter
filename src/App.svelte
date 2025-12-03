@@ -62,6 +62,12 @@
         };
         window.addEventListener("cut-complete", handleCutComplete);
 
+        if (window.electron && window.electron.on) {
+            window.electron.on("open-about", () => {
+                appState.showAboutModal = true;
+            });
+        }
+
         return () => {
             window.removeEventListener("keydown", handleKeydown);
             window.removeEventListener("cut-complete", handleCutComplete);
@@ -129,7 +135,7 @@
         <div class="space-y-4 text-right" dir="rtl">
             <div class="flex flex-col items-center mb-4 gap-2">
                 <img
-                    src="/logo.webp"
+                    src="logo.webp"
                     alt="Logo"
                     class="w-24 h-24 object-contain"
                 />
