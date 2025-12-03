@@ -183,8 +183,18 @@
             ctx.stroke();
 
             // Badge Text
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
             ctx.fillStyle = "#e2e8f0"; // slate-200
-            ctx.fillText(timeText, badgeX + padding, badgeY + 11);
+            ctx.fillText(
+                timeText,
+                badgeX + badgeWidth / 2,
+                badgeY + badgeHeight / 2 + 1,
+            );
+
+            // Reset text align for other draws if necessary (though we redraw everything)
+            ctx.textAlign = "start";
+            ctx.textBaseline = "alphabetic";
         }
     }
 
