@@ -1,4 +1,4 @@
-const { ipcMain, shell, dialog, net } = require('electron');
+const { ipcMain, shell, dialog, net, app } = require('electron');
 const path = require('path');
 const fs = require('fs-extra');
 const { v4: uuidv4 } = require('uuid');
@@ -6,7 +6,7 @@ const ffmpeg = require('fluent-ffmpeg');
 const { spawn } = require('child_process');
 
 // Configure paths
-const UPLOADS_DIR = path.join(__dirname, 'uploads');
+const UPLOADS_DIR = path.join(app.getPath('userData'), 'uploads');
 fs.ensureDirSync(UPLOADS_DIR);
 
 // Store active tasks status

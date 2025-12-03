@@ -5,3 +5,14 @@ dist/
 uploads/
 *.log
 build_error.log
+
+# Build artifacts
+release/
+build/
+
+# Legacy/Backup
+node_modules_old_*/
+src_legacy/
+
+# Source images (optional, if you want to keep repo clean)
+# *.webp

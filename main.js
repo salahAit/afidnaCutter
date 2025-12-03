@@ -12,8 +12,10 @@ const createWindow = () => {
             preload: path.join(__dirname, 'preload.js'),
             nodeIntegration: true,
             contextIsolation: true,
+            contextIsolation: true,
             webSecurity: false
-        }
+        },
+        icon: path.join(__dirname, 'resources/icon.png')
     })
 
     if (process.env.NODE_ENV === 'development') {

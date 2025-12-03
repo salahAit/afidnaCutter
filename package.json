@@ -14,14 +14,40 @@
     "url": "https://github.com/salahAit/afidnaCutter.git"
   },
   "license": "ISC",
-  "author": "salah",
+  "author": {
+    "name": "salah",
+    "email": "salah@example.com"
+  },
   "type": "commonjs",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
     "dev": "./node_modules/.bin/vite & ./node_modules/.bin/wait-on http://localhost:5173 && NODE_ENV=development electron .",
     "build": "vite build",
+    "dist": "vite build && electron-builder",
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "build": {
+    "appId": "com.afidnacutter.app",
+    "productName": "Afidna Cutter",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "main.js",
+      "preload.js",
+      "handlers.js",
+      "package.json",
+      "resources/**/*"
+    ],
+    "linux": {
+      "target": [
+        "deb"
+      ],
+      "category": "Video",
+      "icon": "resources/icon.png"
+    }
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^6.2.1",
@@ -29,6 +55,7 @@
     "concurrently": "^9.2.1",
     "daisyui": "^5.5.5",
     "electron": "^39.2.4",
+    "electron-builder": "^26.0.12",
     "svelte": "^5.45.3",
     "tailwindcss": "^4.1.17",
     "vite": "^7.2.6",
