@@ -9,7 +9,9 @@
         <div
             class="bg-slate-800 p-8 rounded-2xl w-[90%] max-w-[500px] border border-slate-700 shadow-2xl"
         >
-            <h3 class="text-2xl font-bold mb-4 text-emerald-500">{title}</h3>
+            <h3 class="text-2xl font-bold mb-4 text-emerald-500 text-center">
+                {title}
+            </h3>
             <div class="mb-6 text-slate-300">
                 {@render children()}
             </div>

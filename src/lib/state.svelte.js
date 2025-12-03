@@ -13,7 +13,8 @@ export const appState = $state({
     youtubePlayer: null,
     youtubeVideoId: null,
     downloadStatus: { status: 'idle', progress: 0 },
-    isDragging: false
+    isDragging: false,
+    showAboutModal: false
 });
 
 export function formatTime(seconds) {
