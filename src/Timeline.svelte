@@ -31,14 +31,50 @@
 
         if (appState.duration <= 0) return;
 
+        // Calculate Lanes for Overlap
+        const lanes = [];
+        const sortedSegments = appState.segments
+            .map((s, i) => ({ ...s, originalIndex: i }))
+            .sort((a, b) => a.start - b.start);
+
+        sortedSegments.forEach((seg) => {
+            let laneIndex = -1;
+            for (let i = 0; i < lanes.length; i++) {
+                if (seg.start >= lanes[i] + 0.5) {
+                    // Add small buffer
+                    laneIndex = i;
+                    break;
+                }
+            }
+            if (laneIndex === -1) {
+                laneIndex = lanes.length;
+                lanes.push(seg.end);
+            } else {
+                lanes[laneIndex] = seg.end;
+            }
+            seg.lane = laneIndex;
+        });
+
         // Draw Segments
-        appState.segments.forEach((seg) => {
+        const laneHeight = 12;
+        const laneSpacing = 4;
+        const totalLanesHeight =
+            lanes.length * (laneHeight + laneSpacing) - laneSpacing;
+        const startYBase = (height - totalLanesHeight) / 2;
+
+        sortedSegments.forEach((seg) => {
             const startX = (seg.start / appState.duration) * width;
             const endX = (seg.end / appState.duration) * width;
             const segWidth = Math.max(endX - startX, 2);
+            const segY = startYBase + seg.lane * (laneHeight + laneSpacing);
 
             ctx.fillStyle = "#10b981"; // Success color
-            ctx.fillRect(startX, height / 2 - 4, segWidth, 8);
+            ctx.fillRect(startX, segY, segWidth, laneHeight);
+
+            // Draw borders for better visibility
+            ctx.strokeStyle = "#065f46";
+            ctx.lineWidth = 1;
+            ctx.strokeRect(startX, segY, segWidth, laneHeight);
         });
 
         // Draw Current Start Marker (Manual Mode)
