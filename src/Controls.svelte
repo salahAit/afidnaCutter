@@ -53,7 +53,7 @@
         <span id="duration">{formatTime(appState.duration)}</span>
     </div>
 
-    <div class="flex justify-center gap-4 items-center">
+    <div class="flex justify-center gap-4 items-center flex-wrap">
         <button
             class="w-10 h-10 rounded-full border border-slate-600 flex items-center justify-center hover:bg-white/5"
             onclick={() => step(-1)}
@@ -115,7 +115,7 @@
         >
     </div>
 
-    <div class="flex justify-center gap-4">
+    <div class="flex justify-center gap-4 flex-wrap">
         <button
             class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg"
             onclick={markStart}>تحديد البداية [I]</button

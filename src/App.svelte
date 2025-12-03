@@ -26,14 +26,6 @@
                     if (appState.mode === "upload") {
                         const video = document.getElementById("main-video");
                         if (video) video.paused ? video.play() : video.pause();
-                    } else if (
-                        appState.mode === "youtube" &&
-                        appState.youtubePlayer
-                    ) {
-                        const state = appState.youtubePlayer.getPlayerState();
-                        state === 1
-                            ? appState.youtubePlayer.pauseVideo()
-                            : appState.youtubePlayer.playVideo();
                     }
                     break;
                 case "KeyI":
@@ -87,7 +79,7 @@
 >
     <Navbar />
 
-    <div class="flex flex-1 overflow-hidden">
+    <div class="flex flex-1 overflow-hidden flex-col md:flex-row">
         <!-- Main Content -->
         <div class="flex-1 flex flex-col p-4 overflow-y-auto">
             <InputSection />

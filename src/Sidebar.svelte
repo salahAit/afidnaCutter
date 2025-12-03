@@ -9,9 +9,6 @@
         video.currentTime = seg.start;
         video.play();
       }
-    } else if (appState.mode === "youtube" && appState.youtubePlayer) {
-      appState.youtubePlayer.seekTo(seg.start, true);
-      appState.youtubePlayer.playVideo();
     }
   }
 
@@ -102,7 +99,9 @@
   }
 </script>
 
-<div class="w-[350px] bg-slate-800 border-l border-slate-700 flex flex-col">
+<div
+  class="w-full md:w-[350px] bg-slate-800 border-t md:border-t-0 md:border-l border-slate-700 flex flex-col h-1/3 md:h-auto"
+>
   <div
     class="p-4 border-b border-slate-700 font-bold flex justify-between items-center text-slate-100"
   >
@@ -137,14 +136,14 @@
           </div>
           <div class="flex gap-1">
             <button
-              class="p-1.5 text-xs border border-slate-600 rounded text-slate-300 hover:bg-white/10"
+              class="p-2 text-xs border border-slate-600 rounded text-slate-300 hover:bg-white/10 transition-colors"
               onclick={() => playSegment(index)}
               title="تشغيل"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                width="14"
-                height="14"
+                width="16"
+                height="16"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -155,14 +154,14 @@
               >
             </button>
             <button
-              class="p-1.5 text-xs bg-red-500/20 text-red-400 border border-red-500/30 rounded hover:bg-red-500/40 hover:text-white transition-colors"
+              class="p-2 text-xs bg-red-500 text-white rounded hover:bg-red-600 transition-colors shadow-sm"
               onclick={() => deleteSegment(index)}
               title="حذف"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                width="14"
-                height="14"
+                width="16"
+                height="16"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"

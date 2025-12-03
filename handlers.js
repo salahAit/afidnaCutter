@@ -47,53 +47,7 @@ const handlers = {
         };
     },
 
-    'download-youtube': async (event, { url }) => {
-        const sessionId = uuidv4();
-        const sessionDir = path.join(UPLOADS_DIR, sessionId);
-        await fs.ensureDir(sessionDir);
 
-        tasks.set(sessionId, { status: 'downloading', progress: 0 });
-
-        // Spawn yt-dlp
-        const args = [
-            '-f', 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
-            '-o', path.join(sessionDir, 'full_video.%(ext)s'),
-            '--newline', // For progress parsing
-            url
-        ];
-
-        const child = spawn('yt-dlp', args);
-
-        child.stdout.on('data', (data) => {
-            const output = data.toString();
-            console.log('yt-dlp:', output);
-
-            // Parse progress
-            const match = output.match(/\[download\]\s+(\d+\.?\d*)%/);
-            if (match) {
-                const progress = parseFloat(match[1]);
-                tasks.set(sessionId, { status: 'downloading', progress });
-            }
-        });
-
-        child.stderr.on('data', (data) => {
-            console.error('yt-dlp error:', data.toString());
-        });
-
-        child.on('close', (code) => {
-            if (code === 0) {
-                tasks.set(sessionId, { status: 'completed', progress: 100 });
-            } else {
-                tasks.set(sessionId, { status: 'error', message: `Process exited with code ${code}` });
-            }
-        });
-
-        return { session_id: sessionId };
-    },
-
-    'get-status': async (event, sessionId) => {
-        return tasks.get(sessionId) || { status: 'idle' };
-    },
 
     'cut-video': async (event, { filename, session_id, segments }) => {
         const sessionDir = path.join(UPLOADS_DIR, session_id);
