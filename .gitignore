@@ -16,3 +16,6 @@ src_legacy/
 
 # Source images (optional, if you want to keep repo clean)
 # *.webp
+
+# Binaries
+resources/bin/

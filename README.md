@@ -37,10 +37,27 @@ To build the application for production:
 npm run build
 ```
 
-To start the built application:
-```bash
 npm start
 ```
+
+### Windows Build (Cross-compilation from Linux)
+
+To build the Windows installer (`.exe`) from Linux:
+
+1.  **Prerequisites**:
+    *   Download `ffmpeg.exe` and `ffprobe.exe` (static binaries for Windows x64).
+    *   Place them in `resources/bin/win/` (create the directory if it doesn't exist).
+
+2.  **Build**:
+    ```bash
+    npm run dist -- --win
+    ```
+    Or if using yarn:
+    ```bash
+    yarn run dist --win
+    ```
+
+    The installer will be generated in `release/Afidna Cutter Setup <version>.exe`.
 
 ## Troubleshooting
 

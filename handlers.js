@@ -9,6 +9,23 @@ const { spawn } = require('child_process');
 const UPLOADS_DIR = path.join(app.getPath('userData'), 'uploads');
 fs.ensureDirSync(UPLOADS_DIR);
 
+// Configure ffmpeg and ffprobe paths
+let ffmpegPath, ffprobePath;
+if (process.platform === 'win32') {
+    if (app.isPackaged) {
+        ffmpegPath = path.join(process.resourcesPath, 'bin', 'win', 'ffmpeg.exe');
+        ffprobePath = path.join(process.resourcesPath, 'bin', 'win', 'ffprobe.exe');
+    } else {
+        ffmpegPath = path.join(__dirname, 'resources', 'bin', 'win', 'ffmpeg.exe');
+        ffprobePath = path.join(__dirname, 'resources', 'bin', 'win', 'ffprobe.exe');
+    }
+} else {
+    ffmpegPath = 'ffmpeg'; // Fallback to system ffmpeg for other platforms
+    ffprobePath = 'ffprobe';
+}
+ffmpeg.setFfmpegPath(ffmpegPath);
+ffmpeg.setFfprobePath(ffprobePath);
+
 // Store active tasks status
 const tasks = new Map();
 
