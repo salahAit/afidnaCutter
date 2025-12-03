@@ -1,4 +1,4 @@
-const { app, BrowserWindow } = require('electron/main')
+const { app, BrowserWindow, powerSaveBlocker } = require('electron/main')
 const path = require('node:path')
 const { registerHandlers, registerProtocol } = require('./handlers');
 
@@ -13,7 +13,8 @@ const createWindow = () => {
             nodeIntegration: true,
             contextIsolation: true,
             contextIsolation: true,
-            webSecurity: false
+            webSecurity: false,
+            backgroundThrottling: false // Prevent throttling when minimized
         },
         icon: path.join(__dirname, 'resources/icon.png')
     })
@@ -28,6 +29,9 @@ const createWindow = () => {
 }
 
 app.whenReady().then(() => {
+    // Prevent app from being suspended
+    powerSaveBlocker.start('prevent-app-suspension');
+
     registerProtocol(require('electron').protocol);
     const win = createWindow()
     const { createMenu } = require('./menu');

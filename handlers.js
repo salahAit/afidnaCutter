@@ -51,7 +51,7 @@ const handlers = {
 
     'cut-video': async (event, { filename, session_id, segments }) => {
         const sessionDir = path.join(UPLOADS_DIR, session_id);
-        const inputPath = path.join(sessionDir, filename);
+        const inputPath = normalizePath(path.join(sessionDir, filename));
         const outputDir = path.join(sessionDir, 'outputs');
         await fs.ensureDir(outputDir);
 
@@ -61,7 +61,7 @@ const handlers = {
         for (let i = 0; i < segments.length; i++) {
             const { start, end } = segments[i];
             const outputFilename = `segment_${i + 1}${ext}`; // Use same extension
-            const outputPath = path.join(outputDir, outputFilename);
+            const outputPath = normalizePath(path.join(outputDir, outputFilename));
 
             await new Promise((resolve, reject) => {
                 ffmpeg(inputPath)
@@ -141,6 +141,16 @@ function registerProtocol(protocol) {
         const filePath = path.join(UPLOADS_DIR, relativePath);
         return net.fetch('file://' + filePath);
     });
+}
+
+function normalizePath(filePath) {
+    // Normalize path separators for the current OS
+    let normalized = path.normalize(filePath);
+    // On Windows, ensure we don't have mixed separators which might confuse some tools
+    if (process.platform === 'win32') {
+        normalized = normalized.replace(/\//g, '\\');
+    }
+    return normalized;
 }
 
 module.exports = { registerHandlers, registerProtocol };
