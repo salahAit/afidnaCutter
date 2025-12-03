@@ -55,11 +55,12 @@ const handlers = {
         const outputDir = path.join(sessionDir, 'outputs');
         await fs.ensureDir(outputDir);
 
+        const ext = path.extname(filename); // Get extension from input file
         const outputFiles = [];
 
         for (let i = 0; i < segments.length; i++) {
             const { start, end } = segments[i];
-            const outputFilename = `segment_${i + 1}.mp4`;
+            const outputFilename = `segment_${i + 1}${ext}`; // Use same extension
             const outputPath = path.join(outputDir, outputFilename);
 
             await new Promise((resolve, reject) => {
@@ -92,7 +93,9 @@ const handlers = {
     'select-file': async () => {
         const { canceled, filePaths } = await dialog.showOpenDialog({
             properties: ['openFile'],
-            filters: [{ name: 'Videos', extensions: ['mp4', 'mkv', 'avi', 'mov'] }]
+            filters: [
+                { name: 'Media Files', extensions: ['mp4', 'mkv', 'avi', 'mov', 'mp3', 'wav', 'ogg', 'm4a'] }
+            ]
         });
         if (canceled) {
             return { canceled: true };

@@ -36,7 +36,7 @@
   <div>
     <button
       class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold px-6 py-3 rounded-lg transition-colors"
-      onclick={handleFileSelect}>اختر ملف فيديو</button
+      onclick={handleFileSelect}>اختر ملف (فيديو/صوت)</button
     >
   </div>
 
