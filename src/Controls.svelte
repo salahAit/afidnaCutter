@@ -45,12 +45,25 @@
     function cancelStart() {
         appState.currentStart = null;
     }
+
+    function handleSeek(e) {
+        const newTime = parseFloat(e.target.value);
+        if (appState.mode === "upload") {
+            const video = document.getElementById("main-video");
+            if (video) video.currentTime = newTime;
+        } else if (appState.mode === "youtube" && appState.youtubePlayer) {
+            appState.youtubePlayer.seekTo(newTime, true);
+        }
+        appState.currentTime = newTime;
+    }
 </script>
 
 <div class="bg-slate-800 p-4 border-t border-slate-700 flex flex-col gap-4">
-    <div class="text-center font-mono text-xl text-blue-400" dir="ltr">
-        <span id="current-time">{formatTime(appState.currentTime)}</span> /
-        <span id="duration">{formatTime(appState.duration)}</span>
+    <div class="flex justify-center items-center px-4 mb-2" dir="ltr">
+        <div class="text-center font-mono text-xl text-blue-400">
+            <span id="current-time">{formatTime(appState.currentTime)}</span> /
+            <span id="duration">{formatTime(appState.duration)}</span>
+        </div>
     </div>
 
     <div class="flex justify-center gap-4 items-center flex-wrap" dir="ltr">
@@ -113,6 +126,24 @@
             onclick={() => step(1)}
             title="+1s">+1</button
         >
+
+        <!-- Speed Control -->
+        <select
+            bind:value={appState.playbackRate}
+            class="bg-slate-700 text-white text-xs font-mono border border-slate-600 rounded px-2 py-2 focus:outline-none hover:bg-slate-600 cursor-pointer ml-2"
+            title="سرعة التشغيل"
+        >
+            <option value={0.5}>0.5x</option>
+            <option value={0.75}>0.75x</option>
+            <option value={1.0}>1.0x</option>
+            <option value={1.25}>1.25x</option>
+            <option value={1.5}>1.5x</option>
+            <option value={2.0}>2.0x</option>
+            <option value={2.5}>2.5x</option>
+            <option value={3.0}>3.0x</option>
+            <option value={3.5}>3.5x</option>
+            <option value={4.0}>4.0x</option>
+        </select>
     </div>
 
     <div class="flex justify-center gap-4 flex-wrap items-center" dir="ltr">

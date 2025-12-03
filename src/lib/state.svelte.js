@@ -14,7 +14,8 @@ export const appState = $state({
     youtubeVideoId: null,
     downloadStatus: { status: 'idle', progress: 0 },
     isDragging: false,
-    showAboutModal: false
+    showAboutModal: false,
+    playbackRate: 1.0
 });
 
 export function formatTime(seconds) {

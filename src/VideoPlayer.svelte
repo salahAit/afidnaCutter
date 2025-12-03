@@ -26,10 +26,17 @@
     appState.videoFilename &&
       /\.(mp3|wav|ogg|m4a)$/i.test(appState.videoFilename),
   );
+  function handleSeek(e) {
+    const newTime = parseFloat(e.target.value);
+    if (videoElement) {
+      videoElement.currentTime = newTime;
+    }
+    appState.currentTime = newTime;
+  }
 </script>
 
 <div
-  class="flex-1 bg-black rounded-2xl overflow-hidden relative flex items-center justify-center min-h-[250px] md:min-h-[400px]"
+  class="flex-1 bg-black rounded-2xl overflow-hidden relative flex items-center justify-center min-h-[250px] md:min-h-[400px] group"
 >
   {#if !appState.videoSrc}
     <div class="text-slate-500">الرجاء اختيار ملف للبدء</div>
@@ -66,11 +73,31 @@
     id="main-video"
     bind:this={videoElement}
     src={appState.videoSrc}
+    bind:playbackRate={appState.playbackRate}
     class:hidden={!appState.videoSrc}
     class="w-full h-full object-contain"
     ontimeupdate={handleTimeUpdate}
     onloadedmetadata={handleLoadedMetadata}
     onplay={handlePlay}
     onpause={handlePause}
-  ></video>
+  >
+    <track kind="captions" />
+  </video>
+
+  <!-- Progress Bar Overlay -->
+  {#if appState.videoSrc}
+    <div
+      class="absolute bottom-0 left-0 right-0 px-4 py-4 bg-gradient-to-t from-black/90 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20"
+    >
+      <input
+        type="range"
+        min="0"
+        max={appState.duration || 100}
+        value={appState.currentTime}
+        oninput={handleSeek}
+        class="w-full h-1.5 bg-white/30 rounded-lg appearance-none cursor-pointer accent-red-600 hover:h-2 transition-all"
+        dir="ltr"
+      />
+    </div>
+  {/if}
 </div>
