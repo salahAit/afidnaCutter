@@ -107,13 +107,28 @@
       tabindex="0"
     >
       <!-- Tooltip -->
-      {#if isHovering}
+      {#if isHovering || appState.isHoveringTimeline}
+        {@const showTime = appState.isHoveringTimeline
+          ? appState.hoverTime
+          : hoverTime}
+        {@const showLeft = appState.isHoveringTimeline
+          ? (appState.hoverTime / appState.duration) * 100 + "%"
+          : tooltipLeft + "px"}
+
         <div
-          class="absolute bottom-12 bg-black/80 text-white text-xs px-2 py-1 rounded border border-white/20 pointer-events-none transform -translate-x-1/2 font-mono"
-          style="left: {tooltipLeft}px"
+          class="absolute bottom-12 bg-black/80 text-white text-xs px-2 py-1 rounded border border-white/20 pointer-events-none transform -translate-x-1/2 font-mono z-30"
+          style="left: {showLeft}"
         >
-          {formatTime(hoverTime)}
+          {formatTime(showTime)}
         </div>
+
+        <!-- Ghost Thumb -->
+        {#if appState.isHoveringTimeline}
+          <div
+            class="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white/50 rounded-full pointer-events-none transform -translate-x-1/2 z-20"
+            style="left: {showLeft}"
+          ></div>
+        {/if}
       {/if}
 
       <input

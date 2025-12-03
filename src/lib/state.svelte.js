@@ -15,7 +15,9 @@ export const appState = $state({
     downloadStatus: { status: 'idle', progress: 0 },
     isDragging: false,
     showAboutModal: false,
-    playbackRate: 1.0
+    playbackRate: 1.0,
+    hoverTime: null,
+    isHoveringTimeline: false
 });
 
 export function formatTime(seconds) {

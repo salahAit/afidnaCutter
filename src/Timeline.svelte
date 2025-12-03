@@ -151,6 +151,13 @@
         ctx.arc(playheadX, height / 2, 6, 0, Math.PI * 2);
         ctx.fillStyle = "#3b82f6";
         ctx.fill();
+
+        // Draw Hover Line
+        if (appState.isHoveringTimeline && appState.hoverTime !== null) {
+            const hoverX = (appState.hoverTime / appState.duration) * width;
+            ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+            ctx.fillRect(hoverX - 0.5, 0, 1, height);
+        }
     }
 
     function resizeCanvas() {
@@ -173,7 +180,10 @@
         appState.duration;
         appState.currentTime;
         appState.segments.length; // Track length for reactivity
+        appState.currentTime;
+        appState.segments.length; // Track length for reactivity
         appState.currentStart;
+        appState.hoverTime; // Redraw on hover change
 
         requestAnimationFrame(drawTimeline);
     });
@@ -239,6 +249,8 @@
 
         // Hover effect
         if (!isDragging) {
+            appState.hoverTime = time;
+            appState.isHoveringTimeline = true;
             const hover = getHoveredEdge(time);
             canvas.style.cursor = hover ? "ew-resize" : "pointer";
             return;
@@ -315,6 +327,9 @@
     }
 
     function handleMouseLeave() {
+        appState.isHoveringTimeline = false;
+        appState.hoverTime = null;
+
         if (isDragging && resizingSegmentIndex !== -1) {
             // Commit resize on leave? Or just stop dragging?
             // For now just stop
