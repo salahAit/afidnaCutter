@@ -157,6 +157,34 @@
             const hoverX = (appState.hoverTime / appState.duration) * width;
             ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
             ctx.fillRect(hoverX - 0.5, 0, 1, height);
+
+            // Draw Time Badge
+            const timeText = formatTime(appState.hoverTime);
+            ctx.font = "10px monospace";
+            const textMetrics = ctx.measureText(timeText);
+            const textWidth = textMetrics.width;
+            const padding = 4;
+            const badgeWidth = textWidth + padding * 2;
+            const badgeHeight = 16;
+
+            let badgeX = hoverX - badgeWidth / 2;
+            // Clamp to canvas edges
+            if (badgeX < 0) badgeX = 0;
+            if (badgeX + badgeWidth > width) badgeX = width - badgeWidth;
+
+            const badgeY = 0; // Top of canvas
+
+            // Badge Background
+            ctx.fillStyle = "#0f172a"; // slate-900
+            ctx.beginPath();
+            ctx.roundRect(badgeX, badgeY, badgeWidth, badgeHeight, 4);
+            ctx.fill();
+            ctx.strokeStyle = "#334155"; // slate-700
+            ctx.stroke();
+
+            // Badge Text
+            ctx.fillStyle = "#e2e8f0"; // slate-200
+            ctx.fillText(timeText, badgeX + padding, badgeY + 11);
         }
     }
 
