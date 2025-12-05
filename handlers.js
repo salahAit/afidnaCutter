@@ -154,6 +154,96 @@ const handlers = {
         });
     },
 
+    'download-full-youtube': async (event, { url, quality = '360' }) => {
+        const sessionId = uuidv4();
+        const sessionDir = path.join(UPLOADS_DIR, sessionId);
+        await fs.ensureDir(sessionDir);
+
+        // Map quality to yt-dlp format
+        const formatMap = {
+            'best': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
+            '1080': 'bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best',
+            '720': 'bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720][ext=mp4]/best',
+            '480': 'bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/best[height<=480][ext=mp4]/best',
+            '360': 'bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/best[height<=360][ext=mp4]/best',
+            '240': 'bestvideo[height<=240][ext=mp4]+bestaudio[ext=m4a]/best[height<=240][ext=mp4]/best',
+            '144': 'bestvideo[height<=144][ext=mp4]+bestaudio[ext=m4a]/best[height<=144][ext=mp4]/best'
+        };
+        const formatArg = formatMap[quality] || formatMap['360'];
+
+        const outputTemplate = path.join(sessionDir, '%(title)s.%(ext)s');
+
+        return new Promise((resolve, reject) => {
+            const ytdlp = spawn('yt-dlp', [
+                '--no-playlist',
+                '-f', formatArg,
+                '-o', outputTemplate,
+                '--merge-output-format', 'mp4',
+                '--newline',
+                '--progress',
+                url
+            ]);
+
+            let stderr = '';
+            let filename = '';
+
+            ytdlp.stdout.on('data', (data) => {
+                const output = data.toString();
+
+                // Parse progress from yt-dlp output
+                // Format: [download]  45.2% of 50.00MiB at 2.50MiB/s ETA 00:11
+                const progressMatch = output.match(/\[download\]\s+(\d+\.?\d*)%/);
+                if (progressMatch) {
+                    const progress = parseFloat(progressMatch[1]);
+                    // Send progress to renderer
+                    event.sender.send('download-progress', { progress });
+                }
+
+                // Try to capture the filename
+                const destMatch = output.match(/\[download\] Destination: (.+)/);
+                if (destMatch) {
+                    filename = path.basename(destMatch[1]);
+                }
+                const mergeMatch = output.match(/\[Merger\] Merging formats into "(.+)"/);
+                if (mergeMatch) {
+                    filename = path.basename(mergeMatch[1]);
+                }
+            });
+
+            ytdlp.stderr.on('data', (data) => {
+                stderr += data.toString();
+                console.error('yt-dlp stderr:', data.toString());
+            });
+
+            ytdlp.on('close', async (code) => {
+                if (code !== 0) {
+                    reject(new Error(`yt-dlp failed: ${stderr}`));
+                    return;
+                }
+
+                // Find the downloaded file
+                const files = await fs.readdir(sessionDir);
+                const videoFile = files.find(f => f.endsWith('.mp4') || f.endsWith('.mkv') || f.endsWith('.webm'));
+
+                if (!videoFile) {
+                    reject(new Error('Downloaded file not found'));
+                    return;
+                }
+
+                const filePath = path.join(sessionDir, videoFile);
+
+                // Open folder with the file
+                shell.showItemInFolder(filePath);
+
+                resolve({
+                    filename: videoFile,
+                    path: filePath,
+                    session_id: sessionId
+                });
+            });
+        });
+    },
+
     'cut-youtube': async (event, { url, segments, quality = 'best' }) => {
         const sessionId = uuidv4();
         const sessionDir = path.join(UPLOADS_DIR, sessionId);

@@ -1,7 +1,21 @@
 <script>
+  import { onMount } from "svelte";
   import { appState, formatTime } from "./lib/state.svelte.js";
 
   let activeTab = $state("local"); // 'local' or 'youtube'
+
+  // Listen for download progress
+  onMount(() => {
+    const handleProgress = (data) => {
+      if (appState.downloadStatus.status === "downloading") {
+        appState.downloadStatus = {
+          status: "downloading",
+          progress: data.progress,
+        };
+      }
+    };
+    window.electron.on("download-progress", handleProgress);
+  });
 
   // Extract YouTube video ID from URL
   function extractVideoId(url) {
@@ -180,9 +194,85 @@
             <h3 class="text-white font-bold text-lg mb-2" dir="auto">
               {appState.youtubeMetadata.title}
             </h3>
-            <p class="text-slate-400 mb-2">
+            <p class="text-slate-400 mb-3">
               المدة: {formatTime(appState.youtubeMetadata.duration)}
             </p>
+            <div class="relative">
+              <button
+                class="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={appState.downloadStatus.status === "downloading"}
+                onclick={(e) => {
+                  const menu = e.currentTarget.nextElementSibling;
+                  menu.classList.toggle("hidden");
+                }}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                {#if appState.downloadStatus.status === "downloading"}
+                  جاري التنزيل...
+                {:else}
+                  تنزيل كامل ▾
+                {/if}
+              </button>
+
+              <!-- Quality Dropdown Menu -->
+              <div
+                class="hidden absolute top-full left-0 mt-1 bg-slate-800 border border-slate-600 rounded-lg shadow-xl z-50 min-w-[140px]"
+              >
+                {#each [{ value: "best", label: "أفضل جودة" }, { value: "1080", label: "1080p" }, { value: "720", label: "720p" }, { value: "480", label: "480p" }, { value: "360", label: "360p" }, { value: "240", label: "240p" }, { value: "144", label: "144p" }] as option}
+                  <button
+                    class="w-full text-right px-4 py-2 text-sm text-white hover:bg-slate-700 first:rounded-t-lg last:rounded-b-lg transition-colors"
+                    onclick={async (e) => {
+                      e.currentTarget.parentElement.classList.add("hidden");
+                      try {
+                        appState.downloadStatus = {
+                          status: "downloading",
+                          progress: 0,
+                        };
+                        const result = await window.electron.invoke(
+                          "download-full-youtube",
+                          {
+                            url: appState.youtubeUrl,
+                            quality: option.value,
+                          },
+                        );
+                        appState.downloadStatus = {
+                          status: "completed",
+                          progress: 100,
+                        };
+                        alert(`تم التنزيل: ${result.filename}`);
+                        setTimeout(() => {
+                          appState.downloadStatus = {
+                            status: "idle",
+                            progress: 0,
+                          };
+                        }, 2000);
+                      } catch (error) {
+                        console.error(error);
+                        alert("فشل التنزيل: " + error.message);
+                        appState.downloadStatus = {
+                          status: "idle",
+                          progress: 0,
+                        };
+                      }
+                    }}
+                  >
+                    {option.label}
+                  </button>
+                {/each}
+              </div>
+            </div>
           </div>
         </div>
       {/if}
