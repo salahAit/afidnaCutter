@@ -17,7 +17,12 @@ export const appState = $state({
     showAboutModal: false,
     playbackRate: 1.0,
     hoverTime: null,
-    isHoveringTimeline: false
+    isHoveringTimeline: false,
+    // YouTube support
+    youtubeUrl: '',
+    youtubeMetadata: null, // { title, duration, thumbnail }
+    youtubeAnalyzing: false,
+    youtubeQuality: '360' // 'best', '1080', '720', '480', '360', '240', '144'
 });
 
 export function formatTime(seconds) {

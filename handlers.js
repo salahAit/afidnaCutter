@@ -101,8 +101,166 @@ const handlers = {
             return { canceled: true };
         }
         return { filePath: filePaths[0], canceled: false };
+    },
+
+    'analyze-youtube': async (event, { url }) => {
+        return new Promise((resolve, reject) => {
+            const ytdlp = spawn('yt-dlp', ['--dump-json', '--no-playlist', url]);
+            let stdout = '';
+            let stderr = '';
+
+            ytdlp.stdout.on('data', (data) => {
+                stdout += data.toString();
+            });
+
+            ytdlp.stderr.on('data', (data) => {
+                stderr += data.toString();
+            });
+
+            ytdlp.on('close', (code) => {
+                if (code !== 0) {
+                    reject(new Error(stderr || 'yt-dlp failed'));
+                    return;
+                }
+                try {
+                    const info = JSON.parse(stdout);
+
+                    // Extract available qualities from formats
+                    const availableQualities = new Set();
+                    if (info.formats) {
+                        for (const format of info.formats) {
+                            if (format.height) {
+                                availableQualities.add(format.height);
+                            }
+                        }
+                    }
+
+                    // Convert to sorted array (highest first)
+                    const qualities = Array.from(availableQualities)
+                        .sort((a, b) => b - a)
+                        .map(h => h.toString());
+
+                    resolve({
+                        title: info.title,
+                        duration: info.duration,
+                        thumbnail: info.thumbnail,
+                        id: info.id,
+                        availableQualities: qualities
+                    });
+                } catch (e) {
+                    reject(new Error('Failed to parse yt-dlp output'));
+                }
+            });
+        });
+    },
+
+    'cut-youtube': async (event, { url, segments, quality = 'best' }) => {
+        const sessionId = uuidv4();
+        const sessionDir = path.join(UPLOADS_DIR, sessionId);
+        await fs.ensureDir(sessionDir);
+        const outputDir = path.join(sessionDir, 'outputs');
+        await fs.ensureDir(outputDir);
+
+        // Map quality to yt-dlp format
+        const formatMap = {
+            'best': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
+            '1080': 'bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best',
+            '720': 'bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720][ext=mp4]/best',
+            '480': 'bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/best[height<=480][ext=mp4]/best',
+            '360': 'bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/best[height<=360][ext=mp4]/best',
+            '240': 'bestvideo[height<=240][ext=mp4]+bestaudio[ext=m4a]/best[height<=240][ext=mp4]/best',
+            '144': 'bestvideo[height<=144][ext=mp4]+bestaudio[ext=m4a]/best[height<=144][ext=mp4]/best'
+        };
+        const formatArg = formatMap[quality] || formatMap['best'];
+        console.log(`Using quality: ${quality}, format: ${formatArg}`);
+
+        // Step 1: Merge overlapping/nearby segments into chunks
+        const chunks = mergeSegments(segments, 5);
+        console.log('Merged segments into chunks:', chunks);
+
+        const outputFiles = [];
+
+        for (let chunkIdx = 0; chunkIdx < chunks.length; chunkIdx++) {
+            const chunk = chunks[chunkIdx];
+            const chunkFilename = `chunk_${chunkIdx + 1}.mp4`;
+            const chunkPath = path.join(sessionDir, chunkFilename);
+
+            // Step 2: Download chunk using yt-dlp --download-sections
+            const sectionArg = `*${chunk.start}-${chunk.end}`;
+            console.log(`Downloading chunk ${chunkIdx + 1}: ${sectionArg}`);
+
+            await new Promise((resolve, reject) => {
+                const ytdlp = spawn('yt-dlp', [
+                    '--no-playlist',
+                    '-f', formatArg,
+                    '--download-sections', sectionArg,
+                    '-o', chunkPath,
+                    '--force-keyframes-at-cuts',
+                    url
+                ]);
+
+                ytdlp.stdout.on('data', (data) => console.log('yt-dlp:', data.toString()));
+                ytdlp.stderr.on('data', (data) => console.log('yt-dlp err:', data.toString()));
+
+                ytdlp.on('close', (code) => {
+                    if (code !== 0) {
+                        reject(new Error(`yt-dlp failed with code ${code}`));
+                    } else {
+                        resolve();
+                    }
+                });
+            });
+
+            // Step 3: Extract exact segments from the chunk
+            const segmentsInChunk = segments.filter(seg =>
+                seg.start >= chunk.start && seg.end <= chunk.end
+            );
+
+            for (let segIdx = 0; segIdx < segmentsInChunk.length; segIdx++) {
+                const seg = segmentsInChunk[segIdx];
+                // Calculate relative time within the chunk
+                const relativeStart = seg.start - chunk.start;
+                const duration = seg.end - seg.start;
+                const outputFilename = `segment_${outputFiles.length + 1}.mp4`;
+                const outputPath = path.join(outputDir, outputFilename);
+
+                await new Promise((resolve, reject) => {
+                    ffmpeg(chunkPath)
+                        .setStartTime(relativeStart)
+                        .setDuration(duration)
+                        .outputOptions(['-c copy'])
+                        .output(outputPath)
+                        .on('end', () => resolve())
+                        .on('error', (err) => reject(err))
+                        .run();
+                });
+
+                outputFiles.push(outputFilename);
+            }
+
+            // Cleanup chunk file
+            await fs.remove(chunkPath);
+        }
+
+        return { session_id: sessionId, output_files: outputFiles };
     }
 };
+
+// Chunk merging algorithm: merge overlapping/nearby segments
+function mergeSegments(segments, gapThreshold = 5) {
+    if (!segments.length) return [];
+    const sorted = [...segments].sort((a, b) => a.start - b.start);
+    const chunks = [{ start: sorted[0].start, end: sorted[0].end }];
+    for (let i = 1; i < sorted.length; i++) {
+        const last = chunks[chunks.length - 1];
+        if (sorted[i].start <= last.end + gapThreshold) {
+            last.end = Math.max(last.end, sorted[i].end);
+        } else {
+            chunks.push({ start: sorted[i].start, end: sorted[i].end });
+        }
+    }
+    return chunks;
+}
 
 function registerHandlers() {
     for (const [name, handler] of Object.entries(handlers)) {

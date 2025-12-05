@@ -1,4 +1,4 @@
-const { app, BrowserWindow, powerSaveBlocker } = require('electron/main')
+const { app, BrowserWindow, powerSaveBlocker, Menu } = require('electron/main')
 const path = require('node:path')
 const { registerHandlers, registerProtocol } = require('./handlers');
 
@@ -12,12 +12,23 @@ const createWindow = () => {
             preload: path.join(__dirname, 'preload.js'),
             nodeIntegration: true,
             contextIsolation: true,
-            contextIsolation: true,
             webSecurity: false,
             backgroundThrottling: false // Prevent throttling when minimized
         },
         icon: path.join(__dirname, 'resources/icon.png')
     })
+
+    // Enable right-click context menu
+    win.webContents.on('context-menu', (event, params) => {
+        const contextMenu = Menu.buildFromTemplate([
+            { label: 'قص', role: 'cut' },
+            { label: 'نسخ', role: 'copy' },
+            { label: 'لصق', role: 'paste' },
+            { type: 'separator' },
+            { label: 'تحديد الكل', role: 'selectAll' }
+        ]);
+        contextMenu.popup(win);
+    });
 
     if (process.env.NODE_ENV === 'development') {
         win.loadURL('http://localhost:5173');

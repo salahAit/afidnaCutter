@@ -99,7 +99,7 @@
     <!-- Timeline -->
     <Timeline />
 
-    <!-- Bottom Controls -->
+    <!-- Controls (Bottom) -->
     <Controls />
 
     <!-- Success Modal -->

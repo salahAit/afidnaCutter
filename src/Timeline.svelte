@@ -380,12 +380,72 @@
     }
 </script>
 
-<div
-    class="bg-slate-800 border-t border-slate-700 p-4 h-[80px] flex items-center justify-center"
->
+<div class="bg-slate-800 border-t border-slate-700 px-4 py-3">
+    <!-- Time Display -->
+    <div
+        class="flex justify-between items-center mb-2 font-mono text-sm"
+        dir="ltr"
+    >
+        <div class="relative group">
+            <input
+                type="text"
+                value={formatTime(appState.currentTime)}
+                onblur={(e) => {
+                    const parts = e.target.value.split(/[:.]/);
+                    let seconds = 0;
+                    if (parts.length === 3) {
+                        seconds =
+                            parseInt(parts[0]) * 60 +
+                            parseInt(parts[1]) +
+                            parseFloat("0." + parts[2]);
+                    } else if (parts.length === 2) {
+                        seconds = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+                    }
+                    if (
+                        !isNaN(seconds) &&
+                        seconds >= 0 &&
+                        seconds <= appState.duration
+                    ) {
+                        if (appState.mode === "upload") {
+                            const video = document.getElementById("main-video");
+                            if (video) video.currentTime = seconds;
+                        } else if (
+                            appState.mode === "youtube" &&
+                            appState.youtubePlayer
+                        ) {
+                            appState.youtubePlayer.seekTo(seconds, true);
+                        }
+                        appState.currentTime = seconds;
+                    }
+                    e.target.value = formatTime(appState.currentTime);
+                }}
+                class="bg-slate-700/50 text-blue-400 w-24 text-center px-2 py-1 rounded border border-slate-600 hover:border-blue-400 focus:border-blue-500 outline-none transition-all cursor-text"
+            />
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="10"
+                height="10"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                class="absolute left-1 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none"
+            >
+                <path
+                    d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
+                ></path>
+                <path
+                    d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
+                ></path>
+            </svg>
+        </div>
+        <span class="text-slate-400">{formatTime(appState.duration)}</span>
+    </div>
+
+    <!-- Timeline Canvas -->
     <canvas
         bind:this={canvas}
-        class="w-full h-full cursor-pointer"
+        class="w-full h-10 cursor-pointer"
         onmousedown={handleMouseDown}
         onmousemove={handleMouseMove}
         onmouseup={handleMouseUp}

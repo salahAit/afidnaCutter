@@ -9,6 +9,9 @@
         video.currentTime = seg.start;
         video.play();
       }
+    } else if (appState.mode === "youtube" && appState.youtubePlayer) {
+      appState.youtubePlayer.seekTo(seg.start, true);
+      appState.youtubePlayer.playVideo();
     }
   }
 
@@ -65,9 +68,68 @@
     sortSegments();
   }
 
-  async function cutVideo() {
-    if (!appState.sessionId || appState.segments.length === 0) return;
+  const qualityLabels = {
+    best: "أفضل جودة",
+    "1080": "1080p",
+    "720": "720p",
+    "480": "480p",
+    "360": "360p",
+    "240": "240p",
+    "144": "144p",
+  };
 
+  let showQualityModal = $state(false);
+  let pendingCut = $state(false);
+  let qualityWarning = $state("");
+
+  // Check if selected quality is available
+  function isQualityAvailable(quality) {
+    if (quality === "best") return true;
+    const available = appState.youtubeMetadata?.availableQualities || [];
+    const qualityNum = parseInt(quality);
+    // Check if any available quality is >= selected quality
+    return available.some((q) => parseInt(q) >= qualityNum);
+  }
+
+  function getAvailableQualitiesText() {
+    const available = appState.youtubeMetadata?.availableQualities || [];
+    if (available.length === 0) return "غير معروفة";
+    return available
+      .slice(0, 5)
+      .map((q) => q + "p")
+      .join("، ");
+  }
+
+  function confirmQuality() {
+    // Check if quality is available
+    if (!isQualityAvailable(appState.youtubeQuality)) {
+      qualityWarning = `الجودة ${qualityLabels[appState.youtubeQuality]} غير متوفرة. الجودات المتوفرة: ${getAvailableQualitiesText()}`;
+      return;
+    }
+    qualityWarning = "";
+    showQualityModal = false;
+    pendingCut = true;
+    executeCut();
+  }
+
+  async function cutVideo() {
+    if (appState.segments.length === 0) return;
+
+    // Validate based on mode
+    if (appState.mode === "upload" && !appState.sessionId) return;
+    if (appState.mode === "youtube" && !appState.youtubeUrl) return;
+
+    // For YouTube, show quality confirmation
+    if (appState.mode === "youtube" && !pendingCut) {
+      showQualityModal = true;
+      return;
+    }
+
+    pendingCut = false;
+    await executeCut();
+  }
+
+  async function executeCut() {
     const btn = document.getElementById("btn-cut");
     if (btn) {
       btn.disabled = true;
@@ -75,21 +137,31 @@
     }
 
     try {
-      const response = await window.electron.invoke("cut-video", {
-        filename: appState.videoFilename,
-        session_id: appState.sessionId,
-        segments: $state.snapshot(appState.segments), // Use snapshot to get plain object
-      });
+      let response;
+      if (appState.mode === "youtube") {
+        // YouTube mode: use cut-youtube handler
+        response = await window.electron.invoke("cut-youtube", {
+          url: appState.youtubeUrl,
+          segments: $state.snapshot(appState.segments),
+          quality: appState.youtubeQuality,
+        });
+        appState.sessionId = response.session_id;
+      } else {
+        // Local file mode
+        response = await window.electron.invoke("cut-video", {
+          filename: appState.videoFilename,
+          session_id: appState.sessionId,
+          segments: $state.snapshot(appState.segments),
+        });
+      }
 
-      // Show success modal (handled in App.svelte or via a store)
-      // For now let's just alert or dispatch an event
       const event = new CustomEvent("cut-complete", {
         detail: response.output_files,
       });
       window.dispatchEvent(event);
     } catch (error) {
       console.error(error);
-      alert("فشل عملية القص");
+      alert("فشل عملية القص: " + error.message);
     } finally {
       if (btn) {
         btn.disabled = false;
@@ -205,3 +277,69 @@
     </button>
   </div>
 </div>
+
+<!-- Quality Confirmation Modal -->
+{#if showQualityModal}
+  <div
+    class="fixed inset-0 bg-black/70 flex items-center justify-center z-50"
+    onclick={() => (showQualityModal = false)}
+    role="dialog"
+    aria-modal="true"
+  >
+    <div
+      class="bg-slate-800 rounded-2xl p-6 max-w-sm w-full mx-4 border border-slate-600 shadow-2xl"
+      onclick={(e) => e.stopPropagation()}
+      role="document"
+    >
+      <h3 class="text-xl font-bold text-white mb-4 text-center">
+        اختر جودة التحميل
+      </h3>
+
+      <div class="space-y-2 mb-4 max-h-60 overflow-y-auto">
+        {#each Object.entries(qualityLabels) as [value, label]}
+          {@const available = isQualityAvailable(value)}
+          <button
+            class="w-full px-4 py-3 rounded-lg text-right transition-colors flex justify-between items-center {appState.youtubeQuality ===
+            value
+              ? 'bg-blue-500 text-white'
+              : available
+                ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                : 'bg-slate-800 text-slate-500 opacity-60'}"
+            onclick={() => {
+              appState.youtubeQuality = value;
+              qualityWarning = "";
+            }}
+          >
+            <span>{label}</span>
+            {#if !available && value !== "best"}
+              <span class="text-xs text-red-400">غير متوفرة</span>
+            {/if}
+          </button>
+        {/each}
+      </div>
+
+      {#if qualityWarning}
+        <div
+          class="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-300 text-sm text-center"
+        >
+          {qualityWarning}
+        </div>
+      {/if}
+
+      <div class="flex gap-3">
+        <button
+          class="flex-1 px-4 py-3 bg-slate-600 text-white rounded-lg hover:bg-slate-500 transition-colors"
+          onclick={() => (showQualityModal = false)}
+        >
+          إلغاء
+        </button>
+        <button
+          class="flex-1 px-4 py-3 bg-emerald-500 text-white font-bold rounded-lg hover:bg-emerald-600 transition-colors"
+          onclick={confirmQuality}
+        >
+          قص وتصدير
+        </button>
+      </div>
+    </div>
+  </div>
+{/if}
