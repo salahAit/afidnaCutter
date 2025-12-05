@@ -87,7 +87,7 @@
 
     <div class="flex flex-1 overflow-hidden flex-col md:flex-row">
         <!-- Main Content -->
-        <div class="flex-1 flex flex-col p-4 overflow-y-auto">
+        <div class="flex-1 flex flex-col p-4 pb-4 overflow-y-auto">
             <InputSection />
             <VideoPlayer />
         </div>

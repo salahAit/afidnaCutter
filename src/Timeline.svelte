@@ -380,7 +380,7 @@
     }
 </script>
 
-<div class="bg-slate-800 border-t border-slate-700 px-4 py-3">
+<div class="bg-slate-800 border-t border-slate-700 px-4 py-3 mt-3">
     <!-- Time Display -->
     <div
         class="flex justify-between items-center mb-2 font-mono text-sm"
@@ -390,6 +390,11 @@
             <input
                 type="text"
                 value={formatTime(appState.currentTime)}
+                onkeydown={(e) => {
+                    if (e.key === "Enter") {
+                        e.target.blur();
+                    }
+                }}
                 onblur={(e) => {
                     const parts = e.target.value.split(/[:.]/);
                     let seconds = 0;

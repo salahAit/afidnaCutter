@@ -3,6 +3,26 @@
   import { appState, formatTime } from "./lib/state.svelte.js";
 
   let activeTab = $state("local"); // 'local' or 'youtube'
+  let showDownloadModal = $state(false);
+  let selectedQuality = $state("360");
+
+  const qualityOptions = [
+    { value: "144", label: "144p" },
+    { value: "240", label: "240p" },
+    { value: "360", label: "360p" },
+    { value: "480", label: "480p" },
+    { value: "720", label: "720p" },
+    { value: "1080", label: "1080p" },
+    { value: "best", label: "أفضل جودة" },
+  ];
+
+  // Check if selected quality is available
+  function isQualityAvailable(quality) {
+    if (quality === "best") return true;
+    const available = appState.youtubeMetadata?.availableQualities || [];
+    const qualityNum = parseInt(quality);
+    return available.some((q) => parseInt(q) >= qualityNum);
+  }
 
   // Listen for download progress
   onMount(() => {
@@ -17,7 +37,26 @@
     window.electron.on("download-progress", handleProgress);
   });
 
-  // Extract YouTube video ID from URL
+  async function startDownload() {
+    showDownloadModal = false;
+    try {
+      appState.downloadStatus = { status: "downloading", progress: 0 };
+      const result = await window.electron.invoke("download-full-youtube", {
+        url: appState.youtubeUrl,
+        quality: selectedQuality,
+      });
+      appState.downloadStatus = { status: "completed", progress: 100 };
+      alert(`تم التنزيل: ${result.filename}`);
+      setTimeout(() => {
+        appState.downloadStatus = { status: "idle", progress: 0 };
+      }, 2000);
+    } catch (error) {
+      console.error(error);
+      alert("فشل التنزيل: " + error.message);
+      appState.downloadStatus = { status: "idle", progress: 0 };
+    }
+  }
+
   function extractVideoId(url) {
     const patterns = [
       /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
@@ -36,8 +75,6 @@
       alert("الرجاء إدخال رابط يوتيوب صحيح");
       return;
     }
-
-    // Set loading state
     appState.youtubeMetadata = {
       id: videoId,
       title: "جاري التحميل...",
@@ -48,8 +85,6 @@
     appState.mode = "youtube";
     appState.videoSrc = null;
     appState.segments = [];
-
-    // Fetch actual metadata in background
     fetchMetadata(videoId);
   }
 
@@ -58,14 +93,12 @@
       const metadata = await window.electron.invoke("analyze-youtube", {
         url: `https://www.youtube.com/watch?v=${videoId}`,
       });
-      // Update only if still the same video
       if (appState.youtubeMetadata?.id === videoId) {
         appState.youtubeMetadata = { ...metadata, id: videoId, loading: false };
         appState.duration = metadata.duration;
       }
     } catch (error) {
       console.error("Failed to fetch metadata:", error);
-      // Still show video even if metadata fails
       if (appState.youtubeMetadata?.id === videoId) {
         appState.youtubeMetadata.loading = false;
       }
@@ -77,19 +110,15 @@
       const { filePath, canceled } =
         await window.electron.invoke("select-file");
       if (canceled || !filePath) return;
-
       appState.downloadStatus = { status: "processing", progress: 50 };
-
       const response = await window.electron.invoke("upload-video", {
         filePath,
       });
-
       appState.sessionId = response.session_id;
       appState.videoFilename = response.filename;
       appState.videoSrc = response.url;
       appState.mode = "upload";
       appState.youtubeMetadata = null;
-
       appState.downloadStatus = { status: "completed", progress: 100 };
       setTimeout(() => {
         appState.downloadStatus = { status: "idle", progress: 0 };
@@ -197,82 +226,30 @@
             <p class="text-slate-400 mb-3">
               المدة: {formatTime(appState.youtubeMetadata.duration)}
             </p>
-            <div class="relative">
-              <button
-                class="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={appState.downloadStatus.status === "downloading"}
-                onclick={(e) => {
-                  const menu = e.currentTarget.nextElementSibling;
-                  menu.classList.toggle("hidden");
-                }}
+            <button
+              class="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={appState.downloadStatus.status === "downloading"}
+              onclick={() => (showDownloadModal = true)}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                  <polyline points="7 10 12 15 17 10"></polyline>
-                  <line x1="12" y1="15" x2="12" y2="3"></line>
-                </svg>
-                {#if appState.downloadStatus.status === "downloading"}
-                  جاري التنزيل...
-                {:else}
-                  تنزيل كامل ▾
-                {/if}
-              </button>
-
-              <!-- Quality Dropdown Menu -->
-              <div
-                class="hidden absolute top-full left-0 mt-1 bg-slate-800 border border-slate-600 rounded-lg shadow-xl z-50 min-w-[140px]"
-              >
-                {#each [{ value: "best", label: "أفضل جودة" }, { value: "1080", label: "1080p" }, { value: "720", label: "720p" }, { value: "480", label: "480p" }, { value: "360", label: "360p" }, { value: "240", label: "240p" }, { value: "144", label: "144p" }] as option}
-                  <button
-                    class="w-full text-right px-4 py-2 text-sm text-white hover:bg-slate-700 first:rounded-t-lg last:rounded-b-lg transition-colors"
-                    onclick={async (e) => {
-                      e.currentTarget.parentElement.classList.add("hidden");
-                      try {
-                        appState.downloadStatus = {
-                          status: "downloading",
-                          progress: 0,
-                        };
-                        const result = await window.electron.invoke(
-                          "download-full-youtube",
-                          {
-                            url: appState.youtubeUrl,
-                            quality: option.value,
-                          },
-                        );
-                        appState.downloadStatus = {
-                          status: "completed",
-                          progress: 100,
-                        };
-                        alert(`تم التنزيل: ${result.filename}`);
-                        setTimeout(() => {
-                          appState.downloadStatus = {
-                            status: "idle",
-                            progress: 0,
-                          };
-                        }, 2000);
-                      } catch (error) {
-                        console.error(error);
-                        alert("فشل التنزيل: " + error.message);
-                        appState.downloadStatus = {
-                          status: "idle",
-                          progress: 0,
-                        };
-                      }
-                    }}
-                  >
-                    {option.label}
-                  </button>
-                {/each}
-              </div>
-            </div>
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              {#if appState.downloadStatus.status === "downloading"}
+                جاري التنزيل...
+              {:else}
+                تنزيل كامل
+              {/if}
+            </button>
           </div>
         </div>
       {/if}
@@ -289,7 +266,7 @@
       </div>
       <div class="text-center mt-2 text-sm text-slate-400">
         {#if appState.downloadStatus.status === "downloading"}
-          جاري التحميل: {appState.downloadStatus.progress}%
+          جاري التحميل: {Math.round(appState.downloadStatus.progress)}%
         {:else if appState.downloadStatus.status === "processing"}
           جاري المعالجة...
         {:else if appState.downloadStatus.status === "completed"}
@@ -299,3 +276,67 @@
     </div>
   {/if}
 </div>
+
+<!-- Download Quality Modal -->
+{#if showDownloadModal}
+  <div
+    class="fixed inset-0 bg-black/70 flex items-center justify-center z-50"
+    onclick={() => (showDownloadModal = false)}
+    role="dialog"
+    aria-modal="true"
+  >
+    <div
+      class="bg-slate-800 rounded-2xl p-6 max-w-sm w-full mx-4 border border-slate-600 shadow-2xl"
+      onclick={(e) => e.stopPropagation()}
+      role="document"
+    >
+      <h3 class="text-xl font-bold text-white mb-4 text-center">
+        اختر جودة التنزيل
+      </h3>
+
+      <div class="space-y-2 mb-4">
+        {#each qualityOptions as option}
+          {#if isQualityAvailable(option.value)}
+            <button
+              class="w-full px-4 py-3 rounded-lg text-right transition-colors flex justify-between items-center {selectedQuality ===
+              option.value
+                ? 'bg-green-500 text-white'
+                : 'bg-slate-700 text-slate-300 hover:bg-slate-600'}"
+              onclick={() => (selectedQuality = option.value)}
+            >
+              <span>{option.label}</span>
+              {#if selectedQuality === option.value}
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="3"
+                >
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              {/if}
+            </button>
+          {/if}
+        {/each}
+      </div>
+
+      <div class="flex gap-3">
+        <button
+          class="flex-1 px-4 py-3 bg-green-500 text-white font-bold rounded-lg hover:bg-green-600 transition-colors"
+          onclick={startDownload}
+        >
+          تنزيل
+        </button>
+        <button
+          class="flex-1 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+          onclick={() => (showDownloadModal = false)}
+        >
+          إلغاء
+        </button>
+      </div>
+    </div>
+  </div>
+{/if}

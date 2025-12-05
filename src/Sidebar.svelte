@@ -298,23 +298,33 @@
       <div class="space-y-2 mb-4 max-h-60 overflow-y-auto">
         {#each Object.entries(qualityLabels) as [value, label]}
           {@const available = isQualityAvailable(value)}
-          <button
-            class="w-full px-4 py-3 rounded-lg text-right transition-colors flex justify-between items-center {appState.youtubeQuality ===
-            value
-              ? 'bg-blue-500 text-white'
-              : available
-                ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                : 'bg-slate-800 text-slate-500 opacity-60'}"
-            onclick={() => {
-              appState.youtubeQuality = value;
-              qualityWarning = "";
-            }}
-          >
-            <span>{label}</span>
-            {#if !available && value !== "best"}
-              <span class="text-xs text-red-400">غير متوفرة</span>
-            {/if}
-          </button>
+          {#if available || value === "best"}
+            <button
+              class="w-full px-4 py-3 rounded-lg text-right transition-colors flex justify-between items-center {appState.youtubeQuality ===
+              value
+                ? 'bg-blue-500 text-white'
+                : 'bg-slate-700 text-slate-300 hover:bg-slate-600'}"
+              onclick={() => {
+                appState.youtubeQuality = value;
+                qualityWarning = "";
+              }}
+            >
+              <span>{label}</span>
+              {#if appState.youtubeQuality === value}
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="3"
+                >
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              {/if}
+            </button>
+          {/if}
         {/each}
       </div>
 
@@ -328,16 +338,16 @@
 
       <div class="flex gap-3">
         <button
-          class="flex-1 px-4 py-3 bg-slate-600 text-white rounded-lg hover:bg-slate-500 transition-colors"
-          onclick={() => (showQualityModal = false)}
-        >
-          إلغاء
-        </button>
-        <button
           class="flex-1 px-4 py-3 bg-emerald-500 text-white font-bold rounded-lg hover:bg-emerald-600 transition-colors"
           onclick={confirmQuality}
         >
           قص وتصدير
+        </button>
+        <button
+          class="flex-1 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+          onclick={() => (showQualityModal = false)}
+        >
+          إلغاء
         </button>
       </div>
     </div>

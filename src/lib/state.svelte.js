@@ -22,7 +22,9 @@ export const appState = $state({
     youtubeUrl: '',
     youtubeMetadata: null, // { title, duration, thumbnail }
     youtubeAnalyzing: false,
-    youtubeQuality: '360' // 'best', '1080', '720', '480', '360', '240', '144'
+    youtubeQuality: '360', // 'best', '1080', '720', '480', '360', '240', '144'
+    // Theme: 'midnight' (Midnight Aurora), 'ocean' (Ocean Breeze), 'sunset' (Sunset Ember)
+    theme: 'midnight'
 });
 
 export function formatTime(seconds) {

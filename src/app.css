@@ -1,10 +1,437 @@
 @import "tailwindcss";
 @plugin "daisyui";
 
+/* Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&family=Tajawal:wght@400;500;700&family=Almarai:wght@400;700&family=Amiri:wght@400;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
 @theme {
     --font-sans: "Cairo", sans-serif;
 }
 
 body {
     font-family: var(--font-sans);
+    transition: background 0.4s ease, color 0.3s ease;
+}
+
+/* ========================================
+   🌙 THEME 1: Midnight Aurora (شفق منتصف الليل)
+   ======================================== */
+html.midnight {
+    --bg-gradient-start: #0f0f1a;
+    --bg-gradient-end: #1a1a2e;
+    --bg-card: #16162a;
+    --bg-input: #1e1e38;
+    --border: #2d2d4a;
+    --text-primary: #e8e8ff;
+    --text-secondary: #9090b8;
+    --text-muted: #6b6b8a;
+    --accent: #7c3aed;
+    --accent-light: #a855f7;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --shadow: rgba(124, 58, 237, 0.15);
+}
+
+html.midnight body {
+    background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+    color: var(--text-primary);
+    font-family: "Cairo", sans-serif;
+}
+
+/* ========================================
+   ☀️ THEME 2: Ocean Breeze (نسيم المحيط)
+   ======================================== */
+html.ocean {
+    --bg-gradient-start: #f0f9ff;
+    --bg-gradient-end: #dbeafe;
+    --bg-card: #ffffff;
+    --bg-input: #f1f5f9;
+    --border: #93c5fd;
+    --text-primary: #1e3a5f;
+    --text-secondary: #1e40af;
+    --text-muted: #3b82f6;
+    --accent: #2563eb;
+    --accent-light: #3b82f6;
+    --success: #059669;
+    --warning: #d97706;
+    --danger: #dc2626;
+    --shadow: rgba(37, 99, 235, 0.15);
+}
+
+html.ocean body {
+    background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+    color: var(--text-primary);
+    font-family: "Almarai", "Cairo", sans-serif;
+}
+
+/* ========================================
+   🔥 THEME 3: Sunset Ember (جمرة الغروب)
+   ======================================== */
+html.sunset {
+    --bg-gradient-start: #1c1917;
+    --bg-gradient-end: #292524;
+    --bg-card: #292524;
+    --bg-input: #3b3835;
+    --border: #44403c;
+    --text-primary: #fef3c7;
+    --text-secondary: #d6d3d1;
+    --text-muted: #a8a29e;
+    --accent: #f97316;
+    --accent-light: #fb923c;
+    --success: #22c55e;
+    --warning: #eab308;
+    --danger: #ef4444;
+    --shadow: rgba(249, 115, 22, 0.2);
+}
+
+html.sunset body {
+    background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+    color: var(--text-primary);
+    font-family: "Amiri", "Cairo", sans-serif;
+}
+
+/* ========================================
+   🎨 SHARED THEME STYLES
+   ======================================== */
+
+/* Navigation */
+html.midnight nav,
+html.sunset nav {
+    background-color: rgba(22, 22, 42, 0.9) !important;
+    border-color: var(--border) !important;
+    backdrop-filter: blur(12px);
+}
+
+html.ocean nav {
+    background-color: rgba(255, 255, 255, 0.95) !important;
+    border-color: var(--border) !important;
+    backdrop-filter: blur(12px);
+}
+
+/* Cards & Backgrounds */
+html.midnight .bg-slate-800,
+html.midnight .bg-slate-900,
+html.sunset .bg-slate-800,
+html.sunset .bg-slate-900 {
+    background-color: var(--bg-card) !important;
+    border-color: var(--border) !important;
+}
+
+html.ocean .bg-slate-800,
+html.ocean .bg-slate-900 {
+    background-color: var(--bg-card) !important;
+    border-color: var(--border) !important;
+    box-shadow: 0 2px 8px var(--shadow);
+}
+
+html.midnight .bg-slate-800\/80,
+html.sunset .bg-slate-800\/80 {
+    background-color: rgba(22, 22, 42, 0.9) !important;
+}
+
+html.ocean .bg-slate-800\/80 {
+    background-color: rgba(255, 255, 255, 0.95) !important;
+}
+
+html.midnight .bg-slate-800\/50,
+html.sunset .bg-slate-800\/50 {
+    background-color: rgba(22, 22, 42, 0.5) !important;
+}
+
+html.ocean .bg-slate-800\/50 {
+    background-color: rgba(255, 255, 255, 0.8) !important;
+}
+
+html.midnight .bg-slate-700,
+html.sunset .bg-slate-700 {
+    background-color: var(--bg-input) !important;
+}
+
+html.ocean .bg-slate-700 {
+    background-color: #f1f5f9 !important;
+}
+
+/* Text Colors */
+html.midnight .text-white,
+html.sunset .text-white,
+html.ocean .text-white {
+    color: var(--text-primary) !important;
+}
+
+html.midnight .text-slate-300,
+html.sunset .text-slate-300,
+html.ocean .text-slate-300 {
+    color: var(--text-secondary) !important;
+}
+
+html.midnight .text-slate-400,
+html.midnight .text-slate-500,
+html.sunset .text-slate-400,
+html.sunset .text-slate-500,
+html.ocean .text-slate-400,
+html.ocean .text-slate-500 {
+    color: var(--text-muted) !important;
+}
+
+/* Accent Colors */
+html.midnight .text-blue-400,
+html.midnight .text-blue-300 {
+    color: var(--accent-light) !important;
+}
+
+html.ocean .text-blue-400,
+html.ocean .text-blue-300 {
+    color: var(--accent) !important;
+}
+
+html.sunset .text-blue-400,
+html.sunset .text-blue-300 {
+    color: var(--accent-light) !important;
+}
+
+/* Warning/Amber */
+html.midnight .text-amber-400,
+html.ocean .text-amber-400,
+html.sunset .text-amber-400 {
+    color: var(--warning) !important;
+}
+
+/* Borders */
+html.midnight .border-slate-600,
+html.midnight .border-slate-700,
+html.sunset .border-slate-600,
+html.sunset .border-slate-700,
+html.ocean .border-slate-600,
+html.ocean .border-slate-700 {
+    border-color: var(--border) !important;
+}
+
+/* Inputs & Selects */
+html.midnight input,
+html.midnight select,
+html.sunset input,
+html.sunset select {
+    background-color: var(--bg-input) !important;
+    border-color: var(--border) !important;
+    color: var(--text-primary) !important;
+}
+
+html.ocean input,
+html.ocean select {
+    background-color: var(--bg-input) !important;
+    border-color: var(--border) !important;
+    color: var(--text-primary) !important;
+}
+
+html.ocean input::placeholder,
+html.midnight input::placeholder,
+html.sunset input::placeholder {
+    color: var(--text-muted) !important;
+}
+
+/* Buttons - Primary (Blue/Accent) */
+html.midnight .bg-blue-500,
+html.midnight button.bg-blue-500 {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%) !important;
+    box-shadow: 0 4px 15px var(--shadow);
+}
+
+html.ocean .bg-blue-500,
+html.ocean button.bg-blue-500 {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%) !important;
+    color: white !important;
+}
+
+html.sunset .bg-blue-500,
+html.sunset button.bg-blue-500 {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%) !important;
+    box-shadow: 0 4px 15px var(--shadow);
+}
+
+/* Buttons - Purple */
+html.midnight .bg-purple-500,
+html.midnight button.bg-purple-500 {
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%) !important;
+}
+
+html.ocean .bg-purple-500,
+html.ocean button.bg-purple-500 {
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%) !important;
+    color: white !important;
+}
+
+html.sunset .bg-purple-500,
+html.sunset button.bg-purple-500 {
+    background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%) !important;
+}
+
+/* Buttons - Green (Success/Download) */
+html.midnight .bg-green-600,
+html.midnight button.bg-green-600 {
+    background: linear-gradient(135deg, #059669 0%, var(--success) 100%) !important;
+}
+
+html.ocean .bg-green-600,
+html.ocean button.bg-green-600 {
+    background: linear-gradient(135deg, var(--success) 0%, #34d399 100%) !important;
+    color: white !important;
+}
+
+html.sunset .bg-green-600,
+html.sunset button.bg-green-600 {
+    background: linear-gradient(135deg, var(--success) 0%, #4ade80 100%) !important;
+}
+
+/* Gradient Text */
+html.midnight .bg-gradient-to-r.from-blue-500.to-purple-500 {
+    background: linear-gradient(to right, var(--accent), var(--accent-light)) !important;
+}
+
+html.ocean .bg-gradient-to-r.from-blue-500.to-purple-500 {
+    background: linear-gradient(to right, var(--accent), #0891b2) !important;
+}
+
+html.sunset .bg-gradient-to-r.from-blue-500.to-purple-500 {
+    background: linear-gradient(to right, var(--accent), #ef4444) !important;
+}
+
+/* Shadows */
+html.midnight .shadow-lg,
+html.sunset .shadow-lg {
+    box-shadow: 0 4px 20px var(--shadow) !important;
+}
+
+html.ocean .shadow-lg {
+    box-shadow: 0 4px 15px var(--shadow) !important;
+}
+
+/* Timeline & Progress */
+html.midnight .bg-blue-500,
+html.sunset .bg-blue-500 {
+    background-color: var(--accent) !important;
+}
+
+html.ocean .bg-blue-500 {
+    background-color: var(--accent) !important;
+}
+
+/* Hover Effects */
+html.midnight button:hover,
+html.sunset button:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+}
+
+html.ocean button:hover {
+    filter: brightness(0.95);
+    transform: translateY(-1px);
+}
+
+/* Transitions */
+* {
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.2s ease, box-shadow 0.3s ease;
+}
+
+/* Focus States */
+html.midnight input:focus,
+html.midnight select:focus {
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2) !important;
+}
+
+html.ocean input:focus,
+html.ocean select:focus {
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.2) !important;
+}
+
+html.sunset input:focus,
+html.sunset select:focus {
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2) !important;
+}
+
+/* ========================================
+   ☀️ OCEAN THEME - ENHANCED CONTRAST
+   ======================================== */
+
+/* All text elements in Ocean theme */
+html.ocean h1,
+html.ocean h2,
+html.ocean h3,
+html.ocean h4,
+html.ocean h5,
+html.ocean h6,
+html.ocean p,
+html.ocean span,
+html.ocean div,
+html.ocean label {
+    color: #1e3a5f;
+}
+
+/* Specific overrides for light backgrounds */
+html.ocean .text-lg,
+html.ocean .text-xl,
+html.ocean .text-2xl,
+html.ocean .font-bold,
+html.ocean .font-semibold,
+html.ocean .font-medium {
+    color: #1e3a5f !important;
+}
+
+/* Sidebar titles */
+html.ocean aside h2,
+html.ocean aside h3,
+html.ocean aside .font-bold {
+    color: #1e40af !important;
+}
+
+/* Button text in Ocean */
+html.ocean button {
+    color: #1e3a5f;
+}
+
+html.ocean button.bg-red-500,
+html.ocean button.bg-green-600,
+html.ocean button.bg-blue-500,
+html.ocean button.bg-purple-500 {
+    color: white !important;
+}
+
+/* Input text */
+html.ocean input,
+html.ocean select,
+html.ocean textarea {
+    color: #1e3a5f !important;
+    background-color: #f8fafc !important;
+    border: 1px solid #93c5fd !important;
+}
+
+/* Card headers */
+html.ocean .bg-slate-800 h2,
+html.ocean .bg-slate-800 h3,
+html.ocean .bg-slate-900 h2,
+html.ocean .bg-slate-900 h3 {
+    color: #1e40af !important;
+}
+
+/* Segment list items */
+html.ocean .segment-item,
+html.ocean [class*="segment"] {
+    color: #1e3a5f !important;
+}
+
+/* Time displays */
+html.ocean .font-mono {
+    color: #1e40af !important;
+}
+
+/* Icons in Ocean */
+html.ocean svg {
+    color: #3b82f6;
+}
+
+html.ocean button svg {
+    color: inherit;
 }
