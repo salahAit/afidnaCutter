@@ -1,5 +1,6 @@
 <script>
   import { appState, formatTime, sortSegments } from "./lib/state.svelte.js";
+  import { i18n } from "./stores/i18n.svelte.js";
 
   function playSegment(index) {
     const seg = appState.segments[index];
@@ -52,13 +53,13 @@
     const otherTime = appState.segments[index][otherField];
 
     if (field === "start" && time >= otherTime) {
-      alert("وقت البداية يجب أن يكون قبل النهاية");
+      alert(i18n.t("startTimeBeforeEndTimeError"));
       const el = document.getElementById(`seg-${index}-${field}`);
       if (el) el.value = formatTime(appState.segments[index][field]);
       return;
     }
     if (field === "end" && time <= otherTime) {
-      alert("وقت النهاية يجب أن يكون بعد البداية");
+      alert(i18n.t("endTimeAfterStartTimeError"));
       const el = document.getElementById(`seg-${index}-${field}`);
       if (el) el.value = formatTime(appState.segments[index][field]);
       return;
@@ -68,15 +69,16 @@
     sortSegments();
   }
 
-  const qualityLabels = {
-    best: "أفضل جودة",
+  // Reactive quality labels
+  let qualityLabels = $derived({
+    best: i18n.t("bestQuality"),
     "1080": "1080p",
     "720": "720p",
     "480": "480p",
     "360": "360p",
     "240": "240p",
     "144": "144p",
-  };
+  });
 
   let showQualityModal = $state(false);
   let pendingCut = $state(false);
@@ -93,7 +95,7 @@
 
   function getAvailableQualitiesText() {
     const available = appState.youtubeMetadata?.availableQualities || [];
-    if (available.length === 0) return "غير معروفة";
+    if (available.length === 0) return i18n.t("unknown");
     return available
       .slice(0, 5)
       .map((q) => q + "p")
@@ -103,7 +105,7 @@
   function confirmQuality() {
     // Check if quality is available
     if (!isQualityAvailable(appState.youtubeQuality)) {
-      qualityWarning = `الجودة ${qualityLabels[appState.youtubeQuality]} غير متوفرة. الجودات المتوفرة: ${getAvailableQualitiesText()}`;
+      qualityWarning = `${i18n.t("quality")} ${qualityLabels[appState.youtubeQuality]} ${i18n.t("unavailable")}. ${i18n.t("availableQualities")}: ${getAvailableQualitiesText()}`;
       return;
     }
     qualityWarning = "";
@@ -133,7 +135,7 @@
     const btn = document.getElementById("btn-cut");
     if (btn) {
       btn.disabled = true;
-      btn.textContent = "جاري القص...";
+      btn.textContent = i18n.t("processing");
     }
 
     try {
@@ -161,43 +163,44 @@
       window.dispatchEvent(event);
     } catch (error) {
       console.error(error);
-      alert("فشل عملية القص: " + error.message);
+      alert(i18n.t("cutFailed") + ": " + error.message);
     } finally {
       if (btn) {
         btn.disabled = false;
-        btn.textContent = "قص وتصدير";
+        btn.textContent = i18n.t("trimAndExport");
       }
     }
   }
 </script>
 
 <div
-  class="w-full md:w-[350px] bg-slate-800 border-t md:border-t-0 md:border-l border-slate-700 flex flex-col h-1/3 md:h-auto"
+  class="w-full md:w-[350px] bg-base-200 border-t md:border-t-0 md:border-l border-base-300 flex flex-col h-1/3 md:h-auto"
+  dir={i18n.lang === "ar" ? "rtl" : "ltr"}
 >
   <div
-    class="p-4 border-b border-slate-700 font-bold flex justify-between items-center text-slate-100"
+    class="p-4 border-b border-base-300 font-bold flex justify-between items-center text-base-content"
   >
-    <span>المقاطع</span>
-    <span class="bg-slate-900 px-2 py-1 rounded-full text-xs"
+    <span>{i18n.t("segments")}</span>
+    <span class="badge badge-primary px-2 py-1 rounded-full text-xs"
       >{appState.segments.length}</span
     >
   </div>
 
-  <div class="flex-1 overflow-y-auto p-4 space-y-2">
+  <div class="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
     {#each appState.segments as seg, index (seg.id || index)}
       <div
-        class="bg-white/5 border border-slate-700 rounded-lg p-3 flex flex-col gap-2"
+        class="bg-base-100 border border-base-300 rounded-lg p-3 flex flex-col gap-2"
       >
         <div class="flex justify-between items-center w-full gap-2">
           <div class="flex gap-1 items-center flex-1 justify-center" dir="ltr">
             <input
               id="seg-{index}-start"
               type="text"
-              class="bg-transparent border border-transparent hover:border-slate-600 focus:border-blue-500 rounded px-1 py-0.5 text-sm text-slate-200 w-20 text-center transition-colors outline-none"
+              class="input input-sm input-ghost w-20 text-center focus:input-primary"
               value={formatTime(seg.start)}
               onchange={(e) => updateSegment(index, "start", e.target.value)}
             />
-            <span class="text-slate-500 mx-1">
+            <span class="text-base-content/50 mx-1">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="16"
@@ -216,16 +219,16 @@
             <input
               id="seg-{index}-end"
               type="text"
-              class="bg-transparent border border-transparent hover:border-slate-600 focus:border-blue-500 rounded px-1 py-0.5 text-sm text-slate-200 w-20 text-center transition-colors outline-none"
+              class="input input-sm input-ghost w-20 text-center focus:input-primary"
               value={formatTime(seg.end)}
               onchange={(e) => updateSegment(index, "end", e.target.value)}
             />
           </div>
           <div class="flex gap-1">
             <button
-              class="p-2 text-xs border border-slate-600 rounded text-slate-300 hover:bg-white/10 transition-colors"
+              class="btn btn-sm btn-square btn-ghost"
               onclick={() => playSegment(index)}
-              title="تشغيل"
+              title={i18n.t("play")}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -241,9 +244,9 @@
               >
             </button>
             <button
-              class="p-2 text-xs bg-red-500 text-white rounded hover:bg-red-600 transition-colors shadow-sm"
+              class="btn btn-sm btn-square btn-error text-white"
               onclick={() => deleteSegment(index)}
-              title="حذف"
+              title={i18n.t("delete")}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -266,90 +269,93 @@
     {/each}
   </div>
 
-  <div class="p-4 border-t border-slate-700">
+  <div class="p-4 border-t border-base-300">
     <button
       id="btn-cut"
-      class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+      class="btn btn-success w-full font-bold text-white"
       disabled={appState.segments.length === 0}
       onclick={cutVideo}
     >
-      قص وتصدير
+      {i18n.t("trimAndExport")}
     </button>
   </div>
 </div>
 
 <!-- Quality Confirmation Modal -->
 {#if showQualityModal}
-  <div
-    class="fixed inset-0 bg-black/70 flex items-center justify-center z-50"
-    onclick={() => (showQualityModal = false)}
-    role="dialog"
-    aria-modal="true"
-  >
-    <div
-      class="bg-slate-800 rounded-2xl p-6 max-w-sm w-full mx-4 border border-slate-600 shadow-2xl"
-      onclick={(e) => e.stopPropagation()}
-      role="document"
-    >
-      <h3 class="text-xl font-bold text-white mb-4 text-center">
-        اختر جودة التحميل
+  <dialog class="modal modal-open">
+    <div class="modal-box" dir={i18n.lang === "ar" ? "rtl" : "ltr"}>
+      <h3 class="font-bold text-lg text-center mb-4">
+        {i18n.t("selectQuality")}
       </h3>
 
-      <div class="space-y-2 mb-4 max-h-60 overflow-y-auto">
+      <div
+        class="flex flex-col gap-2 max-h-60 overflow-y-auto mb-4 custom-scrollbar"
+      >
         {#each Object.entries(qualityLabels) as [value, label]}
           {@const available = isQualityAvailable(value)}
           {#if available || value === "best"}
-            <button
-              class="w-full px-4 py-3 rounded-lg text-right transition-colors flex justify-between items-center {appState.youtubeQuality ===
+            <label
+              class="label cursor-pointer hover:bg-base-200 rounded-lg px-2 border border-base-200 {appState.youtubeQuality ===
               value
-                ? 'bg-blue-500 text-white'
-                : 'bg-slate-700 text-slate-300 hover:bg-slate-600'}"
-              onclick={() => {
-                appState.youtubeQuality = value;
-                qualityWarning = "";
-              }}
+                ? 'bg-base-200 border-primary'
+                : ''}"
             >
-              <span>{label}</span>
-              {#if appState.youtubeQuality === value}
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="3"
-                >
-                  <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-              {/if}
-            </button>
+              <span class="label-text font-medium">{label}</span>
+              <input
+                type="radio"
+                name="quality"
+                class="radio radio-primary"
+                {value}
+                bind:group={appState.youtubeQuality}
+              />
+            </label>
           {/if}
         {/each}
       </div>
 
       {#if qualityWarning}
-        <div
-          class="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-300 text-sm text-center"
-        >
-          {qualityWarning}
+        <div role="alert" class="alert alert-warning text-sm py-2 mb-4">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="stroke-current shrink-0 h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            ><path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            /></svg
+          >
+          <span>{qualityWarning}</span>
         </div>
       {/if}
 
-      <div class="flex gap-3">
-        <button
-          class="flex-1 px-4 py-3 bg-emerald-500 text-white font-bold rounded-lg hover:bg-emerald-600 transition-colors"
-          onclick={confirmQuality}
-        >
-          قص وتصدير
-        </button>
-        <button
-          class="flex-1 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-          onclick={() => (showQualityModal = false)}
-        >
-          إلغاء
-        </button>
+      <div class="modal-action">
+        <form method="dialog" class="flex gap-2 w-full">
+          <button
+            class="btn btn-success flex-1 text-white"
+            type="button"
+            onclick={confirmQuality}>{i18n.t("confirm")}</button
+          >
+          <button
+            class="btn btn-ghost flex-1"
+            type="button"
+            onclick={() => (showQualityModal = false)}
+            >{i18n.t("cancel")}</button
+          >
+        </form>
       </div>
     </div>
-  </div>
+    <div
+      class="modal-backdrop bg-black/50"
+      role="button"
+      tabindex="0"
+      onclick={() => (showQualityModal = false)}
+      onkeydown={(e) => {
+        if (e.key === "Enter" || e.key === " ") showQualityModal = false;
+      }}
+    ></div>
+  </dialog>
 {/if}

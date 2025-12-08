@@ -1,0 +1,13 @@
+{
+  "result": {
+    "isError": true,
+    "content": [
+      {
+        "type": "text",
+        "text": "Please select at least one snippet. Example: { \"components\": { \"button\": true, \"card\": true } }"
+      }
+    ]
+  },
+  "jsonrpc": "2.0",
+  "id": 5
+}

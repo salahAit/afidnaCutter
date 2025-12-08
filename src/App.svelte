@@ -80,7 +80,7 @@
 </script>
 
 <div
-    class="flex flex-col h-screen bg-slate-900 text-slate-100 font-sans overflow-hidden"
+    class="flex flex-col h-screen bg-base-100 text-base-content font-sans overflow-hidden"
     dir="rtl"
 >
     <Navbar />
@@ -112,14 +112,13 @@
         <ul class="list-none mt-4 space-y-2">
             {#each createdFiles as file}
                 <li
-                    class="flex justify-between items-center bg-white/5 p-2 rounded"
+                    class="flex justify-between items-center bg-base-200 p-2 rounded-box"
                 >
                     <span class="text-sm truncate max-w-[200px]" title={file}
                         >{file}</span
                     >
-                    <button
-                        class="text-xs border border-slate-500 px-2 py-1 rounded hover:bg-white/10"
-                        onclick={openFolder}>فتح المجلد</button
+                    <button class="btn btn-xs btn-outline" onclick={openFolder}
+                        >فتح المجلد</button
                     >
                 </li>
             {/each}
@@ -139,41 +138,41 @@
                     alt="Logo"
                     class="w-24 h-24 object-contain"
                 />
-                <h2 class="text-xl font-bold text-white">منتجات أفدنا كلاود</h2>
+                <h2 class="text-xl font-bold text-primary">
+                    منتجات أفدنا كلاود
+                </h2>
             </div>
-            <p class="text-slate-300">
+            <p class="text-base-content/80">
                 برنامج احترافي لتقطيع الفيديو، يهدف لتسهيل وتسريع عملية
                 المونتاج.
             </p>
 
-            <div class="border-t border-slate-700 pt-4">
-                <p class="font-bold text-emerald-400 mb-2">المطور:</p>
+            <div class="border-t border-base-300 pt-4">
+                <p class="font-bold text-secondary mb-2">المطور:</p>
                 <p>صالح أيت أمقران</p>
             </div>
 
-            <div class="border-t border-slate-700 pt-4">
-                <p class="font-bold text-blue-400 mb-2">سياق المشروع:</p>
+            <div class="border-t border-base-300 pt-4">
+                <p class="font-bold text-accent mb-2">سياق المشروع:</p>
                 <p>
                     هذا البرنامج جزء من مشروع <a
                         href="https://afidna.cloud"
                         target="_blank"
-                        class="text-blue-400 hover:underline"
-                        >أدوات أفدنا كلاود</a
+                        class="link link-primary">أدوات أفدنا كلاود</a
                     >، التابع لمنصة
                     <a
                         href="https://afidna.com"
                         target="_blank"
-                        class="text-blue-400 hover:underline"
-                        >أفدنا للعلوم الشرعية</a
+                        class="link link-primary">أفدنا للعلوم الشرعية</a
                     >.
                 </p>
             </div>
 
             <div
-                class="bg-slate-900/50 p-3 rounded-lg border border-slate-700 mt-2"
+                class="bg-base-200 p-3 rounded-box border border-base-300 mt-2"
             >
-                <p class="text-sm text-slate-400">
-                    هذه النسخة خاصة بالشيخ <span class="text-white font-bold"
+                <p class="text-sm text-base-content/70">
+                    هذه النسخة خاصة بالشيخ <span class="text-primary font-bold"
                         >أبو معاذ محمد مرابط</span
                     >، ضمن أدوات العمل في قناته على اليوتيوب لتسهيل وتسريع قطع
                     المقاطع المرئية والصوتية.
@@ -181,12 +180,12 @@
             </div>
 
             <div
-                class="border-t border-slate-700 pt-4 flex flex-col gap-2 text-sm"
+                class="border-t border-base-300 pt-4 flex flex-col gap-2 text-sm"
             >
                 <a
                     href="https://afidna.cloud"
                     target="_blank"
-                    class="flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
+                    class="flex items-center gap-2 text-base-content/60 hover:text-primary transition-colors"
                 >
                     <span>🌐 موقع أفدنا كلاود:</span>
                     <span dir="ltr">afidna.cloud</span>
@@ -194,7 +193,7 @@
                 <a
                     href="https://afidna.com"
                     target="_blank"
-                    class="flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
+                    class="flex items-center gap-2 text-base-content/60 hover:text-primary transition-colors"
                 >
                     <span>🌐 منصة أفدنا للعلوم االشرعية:</span>
                     <span dir="ltr">afidna.com</span>

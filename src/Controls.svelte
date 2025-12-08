@@ -1,5 +1,6 @@
 <script>
     import { appState, formatTime, addSegment } from "./lib/state.svelte.js";
+    import { i18n } from "./stores/i18n.svelte.js";
 
     function togglePlay() {
         if (appState.mode === "upload") {
@@ -34,7 +35,7 @@
     function markEnd() {
         if (appState.currentStart === null) return;
         if (appState.currentTime <= appState.currentStart) {
-            alert("وقت النهاية يجب أن يكون بعد وقت البداية");
+            alert(i18n.t("endTimeBeforeStartTimeError"));
             return;
         }
         addSegment(appState.currentStart, appState.currentTime);
@@ -58,103 +59,174 @@
     });
 </script>
 
-<div class="bg-slate-800/50 border-t border-slate-700 px-4 py-2">
-    <div class="flex items-center justify-center gap-2 flex-wrap" dir="ltr">
-        <!-- Step Buttons -->
-        <button
-            class="w-8 h-8 rounded-full border border-slate-600 flex items-center justify-center hover:bg-white/10 hover:border-blue-400 text-xs font-mono transition-all"
-            onclick={() => step(-1)}
-            title="-1s">-1</button
-        >
-        <button
-            class="w-8 h-8 rounded-full border border-slate-600 flex items-center justify-center hover:bg-white/10 hover:border-blue-400 text-xs font-mono transition-all"
-            onclick={() => step(-0.1)}
-            title="-0.1s">-0.1</button
-        >
-
-        <!-- Play Button -->
-        <button
-            class="w-10 h-10 rounded-full bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-500/30 transition-all"
-            onclick={togglePlay}
-        >
-            {#if appState.isPlaying}
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                >
-                    <rect x="6" y="4" width="4" height="16"></rect>
-                    <rect x="14" y="4" width="4" height="16"></rect>
-                </svg>
-            {:else}
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                >
-                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                </svg>
-            {/if}
-        </button>
-
-        <button
-            class="w-8 h-8 rounded-full border border-slate-600 flex items-center justify-center hover:bg-white/10 hover:border-blue-400 text-xs font-mono transition-all"
-            onclick={() => step(0.1)}
-            title="+0.1s">+0.1</button
-        >
-        <button
-            class="w-8 h-8 rounded-full border border-slate-600 flex items-center justify-center hover:bg-white/10 hover:border-blue-400 text-xs font-mono transition-all"
-            onclick={() => step(1)}
-            title="+1s">+1</button
-        >
-
-        <!-- Separator -->
-        <div class="w-px h-6 bg-slate-600 mx-1"></div>
-
-        <!-- Mark Buttons -->
-        <button
-            class="bg-purple-500 hover:bg-purple-600 text-white px-3 py-1.5 rounded text-sm font-medium transition-all"
-            onclick={markStart}>البداية [I]</button
-        >
-
-        <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            class="text-slate-500"
-        >
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-            <polyline points="12 5 19 12 12 19"></polyline>
-        </svg>
-
-        <button
-            class="bg-purple-500 hover:bg-purple-600 text-white px-3 py-1.5 rounded text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={appState.currentStart === null}
-            onclick={markEnd}>النهاية [O]</button
-        >
-
-        {#if appState.currentStart !== null}
+<div
+    class="bg-base-200/50 border-t border-base-300 px-4 py-6 mb-4"
+    dir={i18n.lang === "ar" ? "rtl" : "ltr"}
+>
+    <div class="flex items-center justify-center gap-4 flex-wrap">
+        <!-- Playback Controls (Join) -->
+        <div class="join shadow-sm">
             <button
-                class="bg-red-500/80 hover:bg-red-500 text-white px-2 py-1.5 rounded text-sm transition-all"
-                onclick={cancelStart}>✕</button
+                class="join-item btn btn-md btn-neutral tooltip"
+                data-tip="-1s"
+                onclick={() => step(-1)}
+                aria-label={i18n.t("back1Second")}
             >
-        {/if}
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="size-5"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M18.75 19.5l-7.5-7.5 7.5-7.5m-6 15L5.25 12l7.5-7.5"
+                    />
+                </svg>
+            </button>
+            <button
+                class="join-item btn btn-md btn-neutral tooltip"
+                data-tip="-0.1s"
+                onclick={() => step(-0.1)}
+                aria-label={i18n.t("back01Second")}
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="size-5"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M15.75 19.5L8.25 12l7.5-7.5"
+                    />
+                </svg>
+            </button>
+            <button
+                class="join-item btn btn-md btn-primary px-6"
+                onclick={togglePlay}
+                aria-label={appState.isPlaying
+                    ? i18n.t("pause")
+                    : i18n.t("play")}
+            >
+                {#if appState.isPlaying}
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="size-6"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M15.75 5.25v13.5m-7.5-13.5v13.5"
+                        />
+                    </svg>
+                {:else}
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="size-6"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 0 1 0 1.971l-11.54 6.347a1.125 1.125 0 0 1-1.667-.985V5.653Z"
+                        />
+                    </svg>
+                {/if}
+            </button>
+            <button
+                class="join-item btn btn-md btn-neutral tooltip"
+                data-tip="+0.1s"
+                onclick={() => step(0.1)}
+                aria-label={i18n.t("forward01Second")}
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="size-5"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M8.25 4.5l7.5 7.5-7.5 7.5"
+                    />
+                </svg>
+            </button>
+            <button
+                class="join-item btn btn-md btn-neutral tooltip"
+                data-tip="+1s"
+                onclick={() => step(1)}
+                aria-label={i18n.t("forward1Second")}
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="size-5"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M11.25 4.5l7.5 7.5-7.5 7.5m-6-15l7.5 7.5-7.5 7.5"
+                    />
+                </svg>
+            </button>
+        </div>
 
         <!-- Separator -->
-        <div class="w-px h-6 bg-slate-600 mx-1"></div>
+        <div class="hidden md:flex divider divider-horizontal mx-1"></div>
+
+        <!-- Mark Buttons (Join) -->
+        <div class="join shadow-sm">
+            <button
+                class="join-item btn btn-md btn-accent text-white"
+                onclick={markStart}
+            >
+                [I] {i18n.t("start")}
+            </button>
+            <button
+                class="join-item btn btn-md btn-accent text-white"
+                disabled={appState.currentStart === null}
+                onclick={markEnd}
+            >
+                {i18n.t("end")} [O]
+            </button>
+            {#if appState.currentStart !== null}
+                <button
+                    class="join-item btn btn-md btn-error text-white"
+                    onclick={cancelStart}
+                    title={i18n.t("cancelSelection")}
+                >
+                    ✕
+                </button>
+            {/if}
+        </div>
+
+        <!-- Separator -->
+        <div class="hidden md:flex divider divider-horizontal mx-1"></div>
 
         <!-- Speed -->
         <select
             bind:value={appState.playbackRate}
-            class="bg-slate-700 text-white text-xs font-mono border border-slate-600 rounded px-2 py-1.5 focus:outline-none hover:bg-slate-600 cursor-pointer"
+            class="select select-bordered select-md font-mono"
             title="سرعة التشغيل"
         >
             <option value={0.5}>0.5x</option>
@@ -170,7 +242,7 @@
     </div>
 
     {#if appState.currentStart !== null}
-        <div class="text-center text-amber-400 text-sm mt-2">
+        <div class="text-center text-warning text-sm mt-3 font-bold">
             📍 البداية: {formatTime(appState.currentStart)}
         </div>
     {/if}

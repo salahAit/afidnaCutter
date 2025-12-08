@@ -6,6 +6,7 @@
         addSegment,
         sortSegments,
     } from "./lib/state.svelte.js";
+    import { i18n } from "./stores/i18n.svelte.js";
 
     let canvas;
     let isDragging = false;
@@ -15,6 +16,66 @@
     let resizingSegmentIndex = -1;
     let resizingEdge = null; // 'start' or 'end'
     const EDGE_THRESHOLD_PX = 5;
+
+    // Theme Colors
+    let themeColors = $state({
+        track: "#334155",
+        segment: "#10b981",
+        segmentBorder: "#065f46",
+        highlight: "#f59e0b",
+        playhead: "#3b82f6",
+        badgeBg: "#0f172a",
+        badgeText: "#e2e8f0",
+        badgeBorder: "#334155",
+        hoverLine: "rgba(255, 255, 255, 0.5)",
+    });
+
+    let refTrack;
+    let refPrimary;
+    let refSecondary;
+    let refWarning;
+    let refBase100;
+    let refBaseContent;
+    let refAccent; // Added accent
+
+    function updateThemeColors() {
+        if (typeof window === "undefined") return;
+
+        const getBg = (el) => {
+            if (!el) return "#334155";
+            const col = getComputedStyle(el).backgroundColor;
+            return col || "#334155";
+        };
+
+        const getColor = (el) => {
+            if (!el) return "#000000";
+            const col = getComputedStyle(el).color;
+            return col || "#000000";
+        };
+
+        themeColors = {
+            track: getBg(refTrack),
+            segment: getBg(refPrimary), // CHANGED: Use Primary for segments for better contrast
+            segmentBorder: getBg(refPrimary), // Using primary for border for now
+            highlight: getBg(refWarning),
+            playhead: getBg(refAccent), // CHANGED: Use Accent for playhead to distinguish from segments
+            badgeBg: getBg(refBase100),
+            badgeText: getColor(refBaseContent),
+            badgeBorder: getBg(refTrack), // Using track color for badge border
+            hoverLine: "rgba(128, 128, 128, 0.5)", // Neutral
+        };
+    }
+
+    // Update colors when theme changes
+    $effect(() => {
+        // Trigger update when theme changes
+        appState.theme;
+        // Small delay to allow DOM to update classes if necessary
+        setTimeout(() => {
+            updateThemeColors();
+            drawTimeline();
+        }, 50);
+    });
 
     function drawTimeline() {
         if (!canvas) return;
@@ -26,7 +87,7 @@
         ctx.clearRect(0, 0, width, height);
 
         // Background Track
-        ctx.fillStyle = "#334155";
+        ctx.fillStyle = themeColors.track;
         ctx.fillRect(0, height / 2 - 4, width, 8);
 
         if (appState.duration <= 0) return;
@@ -68,11 +129,12 @@
             const segWidth = Math.max(endX - startX, 2);
             const segY = startYBase + seg.lane * (laneHeight + laneSpacing);
 
-            ctx.fillStyle = "#10b981"; // Success color
+            ctx.fillStyle = themeColors.segment;
             ctx.fillRect(startX, segY, segWidth, laneHeight);
 
             // Draw borders for better visibility
-            ctx.strokeStyle = "#065f46";
+            // Simple border logic: use segment color or specific border
+            ctx.strokeStyle = themeColors.badgeBg; // Contrast with inner content? Or just segment color
             ctx.lineWidth = 1;
             ctx.strokeRect(startX, segY, segWidth, laneHeight);
         });
@@ -86,8 +148,8 @@
                 startX,
                 currentX,
                 height,
-                "rgba(245, 158, 11, 0.3)",
-                "#f59e0b",
+                themeColors.highlight, // Add transparency hex approx 30% if hex.
+                // Note: CSS vars might be 'oklch(...)'. Canvas filter or globalAlpha is safer.
                 "البداية",
             );
         }
@@ -104,21 +166,12 @@
                 startX,
                 currentX,
                 height,
-                "rgba(59, 130, 246, 0.3)",
-                "#3b82f6",
+                themeColors.playhead,
                 "",
             );
         }
 
-        function drawHighlight(
-            ctx,
-            startX,
-            endX,
-            height,
-            fillColor,
-            lineColor,
-            label,
-        ) {
+        function drawHighlight(ctx, startX, endX, height, lineColor, label) {
             let hStart = startX;
             let hWidth = endX - startX;
 
@@ -127,8 +180,11 @@
                 hWidth = startX - endX;
             }
 
-            ctx.fillStyle = fillColor;
+            ctx.save();
+            ctx.globalAlpha = 0.3;
+            ctx.fillStyle = lineColor; // Use line color base for fill
             ctx.fillRect(hStart, height / 2 - 4, hWidth, 8);
+            ctx.restore();
 
             // Marker Line at Start
             ctx.fillStyle = lineColor;
@@ -143,19 +199,19 @@
 
         // Draw Playhead
         const playheadX = (appState.currentTime / appState.duration) * width;
-        ctx.fillStyle = "#3b82f6"; // Primary color
+        ctx.fillStyle = themeColors.playhead;
         ctx.fillRect(playheadX - 1, 0, 2, height);
 
         // Playhead Knob
         ctx.beginPath();
         ctx.arc(playheadX, height / 2, 6, 0, Math.PI * 2);
-        ctx.fillStyle = "#3b82f6";
+        ctx.fillStyle = themeColors.playhead;
         ctx.fill();
 
         // Draw Hover Line
         if (appState.isHoveringTimeline && appState.hoverTime !== null) {
             const hoverX = (appState.hoverTime / appState.duration) * width;
-            ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+            ctx.fillStyle = themeColors.hoverLine;
             ctx.fillRect(hoverX - 0.5, 0, 1, height);
 
             // Draw Time Badge
@@ -175,17 +231,17 @@
             const badgeY = 0; // Top of canvas
 
             // Badge Background
-            ctx.fillStyle = "#0f172a"; // slate-900
+            ctx.fillStyle = themeColors.badgeBg;
             ctx.beginPath();
             ctx.roundRect(badgeX, badgeY, badgeWidth, badgeHeight, 4);
             ctx.fill();
-            ctx.strokeStyle = "#334155"; // slate-700
+            ctx.strokeStyle = themeColors.badgeBorder;
             ctx.stroke();
 
             // Badge Text
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
-            ctx.fillStyle = "#e2e8f0"; // slate-200
+            ctx.fillStyle = themeColors.badgeText;
             ctx.fillText(
                 timeText,
                 badgeX + badgeWidth / 2,
@@ -202,6 +258,7 @@
         if (canvas) {
             canvas.width = canvas.offsetWidth;
             canvas.height = canvas.offsetHeight;
+            updateThemeColors();
             drawTimeline();
         }
     }
@@ -216,8 +273,6 @@
     $effect(() => {
         // Dependency tracking
         appState.duration;
-        appState.currentTime;
-        appState.segments.length; // Track length for reactivity
         appState.currentTime;
         appState.segments.length; // Track length for reactivity
         appState.currentStart;
@@ -380,12 +435,13 @@
     }
 </script>
 
-<div class="bg-slate-800 border-t border-slate-700 px-4 py-3 mt-3">
+<div class="bg-base-200 border-t border-base-300 px-4 py-3 mt-3">
     <!-- Time Display -->
     <div
         class="flex justify-between items-center mb-2 font-mono text-sm"
         dir="ltr"
     >
+        <!-- Current Time Input -->
         <div class="relative group">
             <input
                 type="text"
@@ -424,7 +480,7 @@
                     }
                     e.target.value = formatTime(appState.currentTime);
                 }}
-                class="bg-slate-700/50 text-blue-400 w-24 text-center px-2 py-1 rounded border border-slate-600 hover:border-blue-400 focus:border-blue-500 outline-none transition-all cursor-text"
+                class="input input-xs input-bordered w-24 text-center font-mono focus:input-primary"
             />
             <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -434,7 +490,7 @@
                 fill="none"
                 stroke="currentColor"
                 stroke-width="2"
-                class="absolute left-1 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none"
+                class="absolute left-1 top-1/2 -translate-y-1/2 text-base-content/50 pointer-events-none"
             >
                 <path
                     d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
@@ -444,16 +500,19 @@
                 ></path>
             </svg>
         </div>
-        <span class="text-slate-400">{formatTime(appState.duration)}</span>
+
+        <!-- Duration Display -->
+        <span class="text-base-content/70">{formatTime(appState.duration)}</span
+        >
     </div>
 
     <!-- Timeline Canvas -->
     <canvas
         bind:this={canvas}
-        class="w-full h-10 cursor-pointer"
+        class="w-full h-10 cursor-pointer block"
         onmousedown={handleMouseDown}
         onmousemove={handleMouseMove}
         onmouseup={handleMouseUp}
-        onmouseleave={handleMouseLeave}
+        onmouseleave={handleMouseUp}
     ></canvas>
 </div>

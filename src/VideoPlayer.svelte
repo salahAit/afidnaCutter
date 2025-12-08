@@ -3,7 +3,7 @@
   import { onMount } from "svelte";
 
   let videoElement;
-  let youtubeContainer;
+  let youtubeContainer = $state(null);
   let hoverTime = $state(0);
   let tooltipLeft = $state(0);
   let isHovering = $state(false);
@@ -55,24 +55,48 @@
         appState.youtubePlayer = new window.YT.Player(youtubeContainer, {
           videoId: videoId,
           playerVars: {
-            autoplay: 0,
-            controls: 1,
+            autoplay: 1,
+            controls: 0,
+            disablekb: 1,
+            fs: 0,
             modestbranding: 1,
             rel: 0,
+            showinfo: 0,
+            iv_load_policy: 3,
+            origin: window.location.origin, // standard fix for embed issues
           },
+          host: "https://www.youtube-nocookie.com", // Try privacy enhanced mode
           events: {
-            onReady: () => {
-              console.log("YouTube player ready");
-              // Mark loading as complete
-              if (appState.youtubeMetadata) {
-                appState.youtubeMetadata.loading = false;
-              }
+            onReady: (event) => {
+              appState.youtubePlayer = event.target;
+              appState.duration = event.target.getDuration();
+              appState.isPlaying = true; // Auto-playing
             },
             onStateChange: (event) => {
-              appState.isPlaying = event.data === window.YT.PlayerState.PLAYING;
-              // Update time immediately on any state change (including seek)
-              if (appState.youtubePlayer?.getCurrentTime) {
-                appState.currentTime = appState.youtubePlayer.getCurrentTime();
+              // 1 = playing, 2 = paused
+              appState.isPlaying = event.data === 1;
+              if (event.data === 1) {
+                // start timer if playing
+                startTracking();
+              } else {
+                stopTracking();
+              }
+            },
+            onError: (event) => {
+              console.error("YouTube Player Error:", event.data);
+              // Error 153 is permission/embed restriction
+              if (
+                event.data === 150 ||
+                event.data === 101 ||
+                event.data === 153
+              ) {
+                alert(
+                  i18n.t("error") +
+                    ": " +
+                    "Video owner restricted playback (Error " +
+                    event.data +
+                    ")",
+                );
               }
             },
           },
@@ -151,10 +175,10 @@
 </script>
 
 <div
-  class="flex-1 bg-black rounded-2xl overflow-hidden relative flex items-center justify-center min-h-[250px] md:min-h-[400px] group"
+  class="flex-1 bg-black rounded-box overflow-hidden relative flex items-center justify-center min-h-[250px] md:min-h-[400px] group shadow-xl"
 >
   {#if !appState.videoSrc && !appState.youtubeMetadata}
-    <div class="text-slate-500">الرجاء اختيار ملف للبدء</div>
+    <div class="text-base-content/50">الرجاء اختيار ملف للبدء</div>
   {/if}
 
   {#if isAudio && appState.videoSrc}
@@ -166,7 +190,7 @@
         <div class="flex items-center gap-2 h-20">
           {#each Array(5) as _, i}
             <div
-              class="w-2 bg-gradient-to-t from-blue-500 to-purple-500 rounded-full {appState.isPlaying
+              class="w-2 bg-linear-to-t from-primary to-secondary rounded-full {appState.isPlaying
                 ? 'animate-soundwave'
                 : ''}"
               style="animation-delay: {i * 0.1}s; {appState.isPlaying
@@ -175,7 +199,7 @@
             ></div>
           {/each}
         </div>
-        <div class="flex items-center gap-3 text-slate-300">
+        <div class="flex items-center gap-3 text-base-content/80">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="40"
@@ -186,7 +210,7 @@
             stroke-width="2"
             stroke-linecap="round"
             stroke-linejoin="round"
-            class="text-purple-400"
+            class="text-primary"
           >
             <path d="M9 18V5l12-2v13"></path>
             <circle cx="6" cy="18" r="3"></circle>
@@ -218,13 +242,12 @@
     <!-- Loading Overlay -->
     {#if appState.youtubeMetadata.loading}
       <div
-        class="absolute inset-0 flex items-center justify-center bg-slate-900 z-20"
+        class="absolute inset-0 flex items-center justify-center bg-base-300 z-20"
       >
         <div class="flex flex-col items-center gap-4">
-          <div
-            class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"
-          ></div>
-          <span class="text-xl text-slate-300">جاري تحميل الفيديو...</span>
+          <span class="loading loading-spinner loading-lg text-primary"></span>
+          <span class="text-xl text-base-content/70">جاري تحميل الفيديو...</span
+          >
         </div>
       </div>
     {/if}
