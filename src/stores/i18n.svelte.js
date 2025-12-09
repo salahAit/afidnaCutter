@@ -52,6 +52,10 @@ export const translations = {
         bestQuality: "أفضل جودة",
         download: "تحميل",
         confirmCloseWorkLoss: "هل أنت متأكد؟ ستفقد جميع المقاطع المحددة والعمل الحالي.",
+        cutSegment: "قص هذا المقطع",
+        cutAll: "قص الكل",
+        browseYoutube: "افتح يوتوب للنسخ",
+        browseYoutubeSub: "افتح الموقع للبحث عن فيديو",
     },
     en: {
         appTitleShort: "AFIDNA CUTTER",
@@ -106,6 +110,10 @@ export const translations = {
         bestQuality: "Best Quality",
         download: "Download",
         confirmCloseWorkLoss: "Are you sure? You will lose all selected segments and current work.",
+        cutSegment: "Cut Segment",
+        cutAll: "Cut All",
+        browseYoutube: "Open YouTube to Copy",
+        browseYoutubeSub: "Open site to search for video",
     }
 };
 

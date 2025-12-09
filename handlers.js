@@ -1,4 +1,4 @@
-const { ipcMain, shell, dialog, net, app } = require('electron');
+const { ipcMain, shell, dialog, net, app, BrowserWindow } = require('electron');
 const path = require('path');
 const fs = require('fs-extra');
 const { v4: uuidv4 } = require('uuid');
@@ -59,8 +59,8 @@ const handlers = {
         const outputFiles = [];
 
         for (let i = 0; i < segments.length; i++) {
-            const { start, end } = segments[i];
-            const outputFilename = `segment_${i + 1}${ext}`; // Use same extension
+            const { start, end, originalIndex } = segments[i];
+            const outputFilename = `segment_${originalIndex || (i + 1)}${ext}`; // Use original index if present
             const outputPath = normalizePath(path.join(outputDir, outputFilename));
 
             await new Promise((resolve, reject) => {
@@ -87,6 +87,26 @@ const handlers = {
         const dir = sessionId ? path.join(UPLOADS_DIR, sessionId, 'outputs') : UPLOADS_DIR;
         await fs.ensureDir(dir);
         await shell.openPath(dir);
+        return { success: true };
+    },
+
+    'open-youtube-window': async () => {
+        const win = new BrowserWindow({
+            width: 1280,
+            height: 800,
+            title: "YouTube Browser",
+            autoHideMenuBar: true,
+            webPreferences: {
+                nodeIntegration: false,
+                contextIsolation: true
+            }
+        });
+        await win.loadURL('https://www.youtube.com');
+        return { success: true };
+    },
+
+    'open-external': async (event, url) => {
+        await shell.openExternal(url);
         return { success: true };
     },
 
@@ -311,7 +331,10 @@ const handlers = {
                 // Calculate relative time within the chunk
                 const relativeStart = seg.start - chunk.start;
                 const duration = seg.end - seg.start;
-                const outputFilename = `segment_${outputFiles.length + 1}.mp4`;
+
+                // Use original index for filename if available to prevent overwrites
+                const usedIndex = seg.originalIndex || (outputFiles.length + 1);
+                const outputFilename = `segment_${usedIndex}.mp4`;
                 const outputPath = path.join(outputDir, outputFilename);
 
                 await new Promise((resolve, reject) => {

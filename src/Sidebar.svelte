@@ -111,10 +111,12 @@
     qualityWarning = "";
     showQualityModal = false;
     pendingCut = true;
-    executeCut();
+    const single = appState.pendingSingleSegment || null;
+    appState.pendingSingleSegment = null; // Clear after using
+    executeCut(single ? [single] : null);
   }
 
-  async function cutVideo() {
+  async function cutVideo(singleSegment = null) {
     if (appState.segments.length === 0) return;
 
     // Validate based on mode
@@ -124,14 +126,33 @@
     // For YouTube, show quality confirmation
     if (appState.mode === "youtube" && !pendingCut) {
       showQualityModal = true;
+      // If cutting single segment, store it for later
+      if (singleSegment) {
+        appState.pendingSingleSegment = singleSegment; // Need to add this state or just pass via pendingCut context?
+        // Simpler: Just rely on UI flow. Quality modal confirms, then calls executeCut.
+        // But executeCut needs to know. Maybe store in a let variable?
+      } else {
+        appState.pendingSingleSegment = null;
+      }
       return;
     }
 
     pendingCut = false;
-    await executeCut();
+    await executeCut(singleSegment ? [singleSegment] : null);
   }
 
-  async function executeCut() {
+  // Helper for single segment button
+  function cutSingleSegment(index) {
+    const segment = { ...appState.segments[index], originalIndex: index + 1 };
+    cutVideo(segment);
+  }
+
+  async function executeCut(segmentsToCut = null) {
+    const segments = $state.snapshot(segmentsToCut || appState.segments);
+
+    // Safety check
+    if (!segments || segments.length === 0) return;
+
     const btn = document.getElementById("btn-cut");
     if (btn) {
       btn.disabled = true;
@@ -144,7 +165,7 @@
         // YouTube mode: use cut-youtube handler
         response = await window.electron.invoke("cut-youtube", {
           url: appState.youtubeUrl,
-          segments: $state.snapshot(appState.segments),
+          segments: segments,
           quality: appState.youtubeQuality,
         });
         appState.sessionId = response.session_id;
@@ -153,7 +174,7 @@
         response = await window.electron.invoke("cut-video", {
           filename: appState.videoFilename,
           session_id: appState.sessionId,
-          segments: $state.snapshot(appState.segments),
+          segments: segments,
         });
       }
 
@@ -167,7 +188,7 @@
     } finally {
       if (btn) {
         btn.disabled = false;
-        btn.textContent = i18n.t("trimAndExport");
+        btn.textContent = i18n.t("cutAll");
       }
     }
   }
@@ -226,6 +247,34 @@
           </div>
           <div class="flex gap-1">
             <button
+              class="btn btn-sm btn-square btn-secondary text-white"
+              onclick={() => cutSingleSegment(index)}
+              title={i18n.t("cutSegment")}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="lucide lucide-scissors"
+                ><circle cx="6" cy="6" r="3" /><circle
+                  cx="6"
+                  cy="18"
+                  r="3"
+                /><line x1="20" y1="4" x2="8.12" y2="15.88" /><line
+                  x1="14.47"
+                  y1="14.48"
+                  x2="20"
+                  y2="20"
+                /><line x1="8.12" y1="8.12" x2="12" y2="12" /></svg
+              >
+            </button>
+            <button
               class="btn btn-sm btn-square btn-ghost"
               onclick={() => playSegment(index)}
               title={i18n.t("play")}
@@ -274,9 +323,9 @@
       id="btn-cut"
       class="btn btn-success w-full font-bold text-white"
       disabled={appState.segments.length === 0}
-      onclick={cutVideo}
+      onclick={() => cutVideo()}
     >
-      {i18n.t("trimAndExport")}
+      {i18n.t("cutAll")}
     </button>
   </div>
 </div>

@@ -152,6 +152,42 @@
           </button>
         </div>
 
+        <!-- Browse YouTube Button -->
+        <div class="mt-2 text-center w-full">
+          <div class="divider text-xs opacity-50 my-1">{i18n.t("or")}</div>
+          <button
+            class="btn btn-outline btn-sm btn-secondary w-full gap-2"
+            onclick={() => window.electron.invoke("open-youtube-window")}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="lucide lucide-external-link"
+              ><path
+                d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
+              /><polyline points="15 3 21 3 21 9" /><line
+                x1="10"
+                y1="14"
+                x2="21"
+                y2="3"
+              /></svg
+            >
+            <div class="flex flex-col items-center leading-tight">
+              <span>{i18n.t("browseYoutube")}</span>
+              <span class="text-[10px] opacity-70 font-normal"
+                >{i18n.t("browseYoutubeSub")}</span
+              >
+            </div>
+          </button>
+        </div>
+
         {#if appState.youtubeMetadata}
           <div
             class="card card-side bg-base-100 shadow-sm border border-base-300 overflow-hidden"
