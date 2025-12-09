@@ -102,6 +102,174 @@ const handlers = {
             }
         });
         await win.loadURL('https://www.youtube.com');
+
+        // Inject Ad Blocking Logic
+        try {
+            // CSS: Hide all ad containers comprehensively
+            win.webContents.insertCSS(`
+                /* Video ad overlays */
+                .ytp-ad-overlay-container,
+                .ytp-ad-text-overlay,
+                .ytp-ad-image-overlay,
+                /* Banner ads */
+                ytd-ad-slot-renderer,
+                .ytd-ad-slot-renderer,
+                ytd-promoted-sparkles-web-renderer,
+                ytd-promoted-video-renderer,
+                ytd-display-ad-renderer,
+                ytd-companion-slot-renderer,
+                #masthead-ad,
+                /* Sidebar ads */
+                ytd-search-pyv-renderer,
+                ytd-promoted-sparkles-text-search-renderer,
+                /* In-feed ads */
+                ytd-in-feed-ad-layout-renderer,
+                /* Premium upsell */
+                ytd-mealbar-promo-renderer,
+                tp-yt-paper-dialog.ytd-mealbar-promo-renderer,
+                /* Player ad modules */
+                .ytp-paid-content-overlay,
+                .ytp-ad-module,
+                .ytp-suggested-action,
+                .ytp-suggested-action-badge,
+                /* Survey popups */
+                ytmusic-you-there-renderer,
+                yt-mealbar-promo-renderer
+                { display: none !important; visibility: hidden !important; }
+                
+                /* Hide ad duration indicator */
+                .ytp-ad-duration-remaining { display: none !important; }
+            `);
+
+            // JS: Advanced ad skipper with MutationObserver
+            win.webContents.executeJavaScript(`
+                (function() {
+                    'use strict';
+                    
+                    // Configuration
+                    const AD_SPEED = 16; // Speed up ads to 16x
+                    const POLL_INTERVAL = 300; // Check every 300ms for faster response
+                    
+                    // Skip ad function
+                    function skipAd() {
+                        // Multiple skip button selectors for compatibility
+                        const skipSelectors = [
+                            '.ytp-ad-skip-button',
+                            '.ytp-ad-skip-button-modern',
+                            '.ytp-skip-ad-button',
+                            '[class*="skip-button"]',
+                            'button[class*="skip"]'
+                        ];
+                        
+                        for (const selector of skipSelectors) {
+                            const btn = document.querySelector(selector);
+                            if (btn && btn.offsetParent !== null) {
+                                btn.click();
+                                console.log('[AdBlock] Skipped ad');
+                                return true;
+                            }
+                        }
+                        return false;
+                    }
+                    
+                    // Close overlays
+                    function closeOverlays() {
+                        const closeBtn = document.querySelector('.ytp-ad-overlay-close-button');
+                        if (closeBtn) {
+                            closeBtn.click();
+                            console.log('[AdBlock] Closed overlay');
+                        }
+                    }
+                    
+                    // Speed up and mute video ads
+                    function speedUpAd() {
+                        const video = document.querySelector('video.html5-main-video');
+                        if (!video) return;
+                        
+                        // Check if ad is playing
+                        const playerAd = document.querySelector('.ad-showing, .ytp-ad-player-overlay');
+                        if (playerAd) {
+                            // Speed up to skip faster
+                            if (video.playbackRate !== AD_SPEED) {
+                                video.playbackRate = AD_SPEED;
+                                console.log('[AdBlock] Speeding up ad to ' + AD_SPEED + 'x');
+                            }
+                            // Mute during ad
+                            if (!video.muted) {
+                                video.muted = true;
+                            }
+                        } else {
+                            // Reset for normal video
+                            if (video.playbackRate > 4) {
+                                video.playbackRate = 1;
+                            }
+                        }
+                    }
+                    
+                    // Skip intro ads by seeking
+                    function skipPrerollAds() {
+                        const video = document.querySelector('video.html5-main-video');
+                        const adPlaying = document.querySelector('.ad-showing');
+                        
+                        if (video && adPlaying && video.duration && !isNaN(video.duration)) {
+                            // Jump to nearly the end
+                            video.currentTime = video.duration - 0.1;
+                            console.log('[AdBlock] Jumped to end of ad');
+                        }
+                    }
+                    
+                    // Main blocking function
+                    function blockAds() {
+                        if (!skipAd()) {
+                            speedUpAd();
+                            skipPrerollAds();
+                        }
+                        closeOverlays();
+                    }
+                    
+                    // Use MutationObserver for instant detection
+                    const observer = new MutationObserver((mutations) => {
+                        for (const mutation of mutations) {
+                            if (mutation.addedNodes.length || mutation.attributeName === 'class') {
+                                blockAds();
+                                break;
+                            }
+                        }
+                    });
+                    
+                    // Observe player for changes
+                    function startObserver() {
+                        const player = document.querySelector('#movie_player, .html5-video-player');
+                        if (player) {
+                            observer.observe(player, {
+                                childList: true,
+                                subtree: true,
+                                attributes: true,
+                                attributeFilter: ['class']
+                            });
+                            console.log('[AdBlock] Observer started');
+                        } else {
+                            // Retry until player loads
+                            setTimeout(startObserver, 500);
+                        }
+                    }
+                    
+                    // Start observer
+                    startObserver();
+                    
+                    // Fallback polling (in case observer misses something)
+                    setInterval(blockAds, POLL_INTERVAL);
+                    
+                    // Initial run
+                    blockAds();
+                    
+                    console.log('[AdBlock] YouTube Ad Blocker initialized');
+                })();
+            `);
+        } catch (e) {
+            console.error("Failed to inject ad blockers:", e);
+        }
+
         return { success: true };
     },
 
