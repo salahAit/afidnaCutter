@@ -43,6 +43,28 @@ app.whenReady().then(() => {
     // Prevent app from being suspended
     powerSaveBlocker.start('prevent-app-suspension');
 
+    // --- Ad Blocking Logic ---
+    const { session } = require('electron');
+    const adFilter = {
+        urls: [
+            "*://*.doubleclick.net/*",
+            "*://*.googleadservices.com/*",
+            "*://*.googlesyndication.com/*",
+            "*://*.moatads.com/*",
+            "*://*.youtube.com/api/stats/ads*",
+            "*://*.youtube.com/pagead/*",
+            "*://*.youtube.com/ptracking*",
+            "*://*.adservice.google.com/*",
+            "*://*.google-analytics.com/*"
+        ]
+    };
+
+    session.defaultSession.webRequest.onBeforeRequest(adFilter, (details, callback) => {
+        // console.log("Blocked Ad Request:", details.url); // Optional: Debug log
+        callback({ cancel: true });
+    });
+    // -------------------------
+
     registerProtocol(require('electron').protocol);
     const win = createWindow()
     const { createMenu } = require('./menu');

@@ -46,14 +46,14 @@
 </script>
 
 <div
-  class="navbar bg-base-100 shadow-md px-2"
+  class="navbar bg-base-100 shadow-md px-2 relative z-[1000]"
   dir={i18n.lang === "ar" ? "rtl" : "ltr"}
 >
   <!-- Navbar Start -->
   <div class="navbar-start gap-2">
     <!-- Hamburger Menu (Mobile Only - Guide & About) -->
-    <details class="dropdown lg:hidden">
-      <summary tabindex="0" role="button" class="btn btn-ghost btn-circle">
+    <div class="dropdown lg:hidden">
+      <div tabindex="0" role="button" class="btn btn-ghost btn-circle">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           class="h-6 w-6"
@@ -68,29 +68,95 @@
             d="M4 6h16M4 12h16M4 18h7"
           />
         </svg>
-      </summary>
+      </div>
       <ul
-        tabindex="-1"
+        tabindex="0"
         class="menu menu-sm dropdown-content bg-base-200 rounded-box z-[100] mt-3 w-52 p-2 shadow-lg border border-base-300"
       >
         <li>
-          <button type="button" onclick={openGuide}>📖 {i18n.t("guide")}</button
-          >
+          <button type="button" onclick={openGuide}>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+              class="w-5 h-5"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"
+              />
+            </svg>
+            {i18n.t("guide")}
+          </button>
         </li>
         <li>
-          <button type="button" onclick={openAbout}>ℹ️ {i18n.t("about")}</button
-          >
+          <button type="button" onclick={openAbout}>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+              class="w-5 h-5"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"
+              />
+            </svg>
+            {i18n.t("about")}
+          </button>
         </li>
       </ul>
-    </details>
+    </div>
 
     <!-- Desktop Buttons (Guide & About) -->
     <div class="hidden lg:flex gap-1">
-      <button type="button" class="btn btn-ghost btn-sm" onclick={openGuide}>
-        📖 {i18n.t("guide")}
+      <button
+        type="button"
+        class="btn btn-ghost btn-sm gap-2"
+        onclick={openGuide}
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="1.5"
+          stroke="currentColor"
+          class="w-4 h-4"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"
+          />
+        </svg>
+        {i18n.t("guide")}
       </button>
-      <button type="button" class="btn btn-ghost btn-sm" onclick={openAbout}>
-        ℹ️ {i18n.t("about")}
+      <button
+        type="button"
+        class="btn btn-ghost btn-sm gap-2"
+        onclick={openAbout}
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="1.5"
+          stroke="currentColor"
+          class="w-4 h-4"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"
+          />
+        </svg>
+        {i18n.t("about")}
       </button>
     </div>
 
@@ -111,11 +177,11 @@
   <!-- Navbar End (Theme & Language - Always Visible) -->
   <div class="navbar-end gap-1 flex-none">
     <!-- Theme Dropdown -->
-    <details class="dropdown dropdown-end">
-      <summary
+    <div class="dropdown dropdown-end">
+      <div
         tabindex="0"
         role="button"
-        class="btn btn-ghost btn-sm btn-circle sm:btn-square gap-1"
+        class="btn btn-ghost btn-sm h-8 w-8 px-0 rounded-full sm:rounded-btn sm:h-auto sm:w-auto sm:px-3 gap-2"
       >
         <span class="text-xl">{getCurrentThemeDisplay().icon}</span>
         <span class="hidden sm:inline text-sm"
@@ -135,9 +201,9 @@
             d="M19 9l-7 7-7-7"
           />
         </svg>
-      </summary>
+      </div>
       <ul
-        tabindex="-1"
+        tabindex="0"
         class="menu dropdown-content bg-base-200 rounded-box z-[100] mt-3 w-48 p-2 shadow-lg border border-base-300"
       >
         <li>
@@ -165,14 +231,14 @@
           >
         </li>
       </ul>
-    </details>
+    </div>
 
     <!-- Language Dropdown -->
-    <details class="dropdown dropdown-end">
-      <summary
+    <div class="dropdown dropdown-end">
+      <div
         tabindex="0"
         role="button"
-        class="btn btn-ghost btn-sm btn-circle sm:btn-square gap-1"
+        class="btn btn-ghost btn-sm h-8 w-8 px-0 rounded-full sm:rounded-btn sm:h-auto sm:w-auto sm:px-3 gap-2"
       >
         <span class="text-xl">{getCurrentLangDisplay().flag}</span>
         <span class="hidden sm:inline text-sm"
@@ -192,9 +258,9 @@
             d="M19 9l-7 7-7-7"
           />
         </svg>
-      </summary>
+      </div>
       <ul
-        tabindex="-1"
+        tabindex="0"
         class="menu dropdown-content bg-base-200 rounded-box z-[100] mt-3 w-40 p-2 shadow-lg border border-base-300"
       >
         <li>
@@ -212,7 +278,7 @@
           >
         </li>
       </ul>
-    </details>
+    </div>
   </div>
 </div>
 
@@ -229,7 +295,7 @@
         : "A professional video cutting and editing application. Supports local files and YouTube links."}
     </p>
     <p class="text-sm opacity-70">
-      {i18n.lang === "ar" ? "الإصدار: 1.0.1" : "Version: 1.0.1"}
+      {i18n.lang === "ar" ? "الإصدار: 2.0.0" : "Version: 2.0.0"}
     </p>
     <div class="modal-action">
       <form method="dialog">
@@ -245,7 +311,23 @@
 <!-- Guide Modal -->
 <dialog bind:this={guideModal} class="modal">
   <div class="modal-box max-w-2xl" dir={i18n.lang === "ar" ? "rtl" : "ltr"}>
-    <h3 class="font-bold text-lg">📖 {i18n.t("guide")}</h3>
+    <h3 class="font-bold text-lg flex items-center gap-2">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke-width="1.5"
+        stroke="currentColor"
+        class="w-6 h-6"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"
+        />
+      </svg>
+      {i18n.t("guide")}
+    </h3>
     <div class="py-4 space-y-3">
       {#if i18n.lang === "ar"}
         <div class="flex gap-2">

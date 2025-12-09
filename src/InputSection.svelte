@@ -3,10 +3,8 @@
   import { appState, formatTime } from "./lib/state.svelte.js";
   import { i18n } from "./stores/i18n.svelte.js";
 
-  let activeTab = $state("local"); // 'local' or 'youtube'
   let showDownloadModal = $state(false);
   let selectedQuality = $state("360");
-  let isDragging = $state(false);
 
   const qualityOptions = [
     { value: "144", label: "144p" },
@@ -80,7 +78,7 @@
       title: "Loading...",
       duration: 0,
       thumbnail: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
-      loading: true,
+      loading: false,
     };
     appState.mode = "youtube";
     appState.videoSrc = null;
@@ -104,51 +102,6 @@
       }
     }
   }
-
-  async function handleFileSelect() {
-    try {
-      const { filePath, canceled } =
-        await window.electron.invoke("select-file");
-      if (canceled || !filePath) return;
-      processFile(filePath);
-    } catch (error) {
-      console.error(error);
-      alert(i18n.t("failedToSelectFile"));
-    }
-  }
-
-  async function processFile(filePath) {
-    appState.downloadStatus = { status: "processing", progress: 50 };
-    try {
-      const response = await window.electron.invoke("upload-video", {
-        filePath,
-      });
-      appState.sessionId = response.session_id;
-      appState.videoFilename = response.filename;
-      appState.videoSrc = response.url;
-      appState.mode = "upload";
-      appState.youtubeMetadata = null;
-      appState.downloadStatus = { status: "completed", progress: 100 };
-      setTimeout(() => {
-        appState.downloadStatus = { status: "idle", progress: 0 };
-      }, 1000);
-    } catch (error) {
-      console.error(error);
-      alert(i18n.t("failedToProcessFile"));
-      appState.downloadStatus = { status: "idle", progress: 0 };
-    }
-  }
-
-  function onDrop(e) {
-    e.preventDefault();
-    isDragging = false;
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const file = e.dataTransfer.files[0];
-      // Electron usually gives full path in e.dataTransfer.files[0].path
-      const filePath = file.path;
-      if (filePath) processFile(filePath);
-    }
-  }
 </script>
 
 <div
@@ -163,65 +116,25 @@
     >
       <button
         role="tab"
-        class="tab {activeTab === 'local' ? 'tab-active' : ''}"
-        onclick={() => (activeTab = "local")}
+        class="tab {appState.activeTab === 'local' ? 'tab-active' : ''}"
+        onclick={() => (appState.activeTab = "local")}
       >
         📁 {i18n.t("localFile")}
       </button>
       <button
         role="tab"
-        class="tab {activeTab === 'youtube' ? 'tab-active' : ''}"
-        onclick={() => (activeTab = "youtube")}
+        class="tab {appState.activeTab === 'youtube'
+          ? 'tab-active'
+          : ''} flex items-center gap-2"
+        onclick={() => (appState.activeTab = "youtube")}
       >
-        <span class="text-error mr-2">▶</span>
+        <span class="text-error">▶</span>
         {i18n.t("youtube")}
       </button>
     </div>
 
-    <!-- Local File Tab (Hero Dropzone) -->
-    {#if activeTab === "local"}
-      <div
-        class="hero bg-base-100 rounded-xl border-2 border-dashed transition-all cursor-pointer min-h-[200px] {isDragging
-          ? 'border-primary bg-base-200'
-          : 'border-base-300 hover:border-primary hover:bg-base-200'}"
-        onclick={handleFileSelect}
-        ondragover={(e) => {
-          e.preventDefault();
-          isDragging = true;
-        }}
-        ondragleave={() => (isDragging = false)}
-        ondrop={onDrop}
-        role="button"
-        tabindex="0"
-        onkeydown={(e) => e.key === "Enter" && handleFileSelect()}
-      >
-        <div class="hero-content text-center">
-          <div class="max-w-md">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-16 w-16 mx-auto mb-4 text-base-content/50"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-              />
-            </svg>
-            <h3 class="text-lg font-bold">
-              {i18n.t("dragDrop")}
-            </h3>
-            <p class="py-2 text-sm opacity-70">{i18n.t("supportedFormats")}</p>
-          </div>
-        </div>
-      </div>
-    {/if}
-
-    <!-- YouTube Tab -->
-    {#if activeTab === "youtube"}
+    <!-- YouTube Tab Input -->
+    {#if appState.activeTab === "youtube"}
       <div class="w-full max-w-2xl mx-auto space-y-6">
         <div class="join w-full">
           <input

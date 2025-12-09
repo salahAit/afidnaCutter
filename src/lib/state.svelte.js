@@ -24,7 +24,8 @@ export const appState = $state({
     youtubeAnalyzing: false,
     youtubeQuality: '360', // 'best', '1080', '720', '480', '360', '240', '144'
     // Theme: 'midnight' (Midnight Aurora), 'ocean' (Ocean Breeze), 'sunset' (Sunset Ember)
-    theme: 'midnight'
+    theme: 'midnight',
+    activeTab: 'local' // 'local' or 'youtube'
 });
 
 export function formatTime(seconds) {

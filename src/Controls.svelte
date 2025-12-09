@@ -60,12 +60,12 @@
 </script>
 
 <div
-    class="bg-base-200/50 border-t border-base-300 px-4 py-6 mb-4"
+    class="bg-base-200/50 border-t border-base-300 px-4 py-6 mb-4 relative z-[95]"
     dir={i18n.lang === "ar" ? "rtl" : "ltr"}
 >
     <div class="flex items-center justify-center gap-4 flex-wrap">
         <!-- Playback Controls (Join) -->
-        <div class="join shadow-sm">
+        <div class="join shadow-sm" dir="ltr">
             <button
                 class="join-item btn btn-md btn-neutral tooltip"
                 data-tip="-1s"
@@ -223,21 +223,18 @@
         <!-- Separator -->
         <div class="hidden md:flex divider divider-horizontal mx-1"></div>
 
-        <!-- Speed -->
+        <!-- Speed Custom Dropdown -->
+        <!-- Speed Native Select -->
         <select
+            class="select select-sm select-bordered font-bold w-24 h-8 min-h-0 text-center"
             bind:value={appState.playbackRate}
-            class="select select-bordered select-md font-mono"
-            title="سرعة التشغيل"
+            dir="ltr"
+            aria-label="Playback Speed"
+            style="background-image: none;"
         >
-            <option value={0.5}>0.5x</option>
-            <option value={0.75}>0.75x</option>
-            <option value={1.0}>1.0x</option>
-            <option value={1.25}>1.25x</option>
-            <option value={1.5}>1.5x</option>
-            <option value={2.0}>2.0x</option>
-            <option value={2.5}>2.5x</option>
-            <option value={3.0}>3.0x</option>
-            <option value={4.0}>4.0x</option>
+            {#each [0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 2.5, 3.0, 4.0] as rate}
+                <option value={rate}>{rate}x</option>
+            {/each}
         </select>
     </div>
 

@@ -166,7 +166,7 @@
                 startX,
                 currentX,
                 height,
-                themeColors.playhead,
+                themeColors.highlight,
                 "",
             );
         }
@@ -515,4 +515,15 @@
         onmouseup={handleMouseUp}
         onmouseleave={handleMouseUp}
     ></canvas>
+
+    <!-- Hidden elements for theme color extraction -->
+    <div class="hidden">
+        <span bind:this={refTrack} class="bg-base-300"></span>
+        <span bind:this={refPrimary} class="bg-primary"></span>
+        <span bind:this={refSecondary} class="bg-secondary"></span>
+        <span bind:this={refWarning} class="bg-warning"></span>
+        <span bind:this={refBase100} class="bg-base-100"></span>
+        <span bind:this={refBaseContent} class="text-base-content"></span>
+        <span bind:this={refAccent} class="bg-accent"></span>
+    </div>
 </div>
