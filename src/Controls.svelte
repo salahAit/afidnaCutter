@@ -71,6 +71,7 @@
                 data-tip={i18n.t("tipBack1s")}
                 onclick={() => step(-1)}
                 aria-label={i18n.t("stepBack1s")}
+                disabled={!appState.videoSrc && !appState.youtubeMetadata}
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -92,6 +93,7 @@
                 data-tip={i18n.t("tipBack01s")}
                 onclick={() => step(-0.1)}
                 aria-label={i18n.t("stepBack01s")}
+                disabled={!appState.videoSrc && !appState.youtubeMetadata}
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -114,6 +116,7 @@
                 aria-label={appState.isPlaying
                     ? i18n.t("pause")
                     : i18n.t("play")}
+                disabled={!appState.videoSrc && !appState.youtubeMetadata}
             >
                 {#if appState.isPlaying}
                     <svg
@@ -152,6 +155,7 @@
                 data-tip={i18n.t("tipForward01s")}
                 onclick={() => step(0.1)}
                 aria-label={i18n.t("stepForward01s")}
+                disabled={!appState.videoSrc && !appState.youtubeMetadata}
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -173,6 +177,7 @@
                 data-tip={i18n.t("tipForward1s")}
                 onclick={() => step(1)}
                 aria-label={i18n.t("stepForward1s")}
+                disabled={!appState.videoSrc && !appState.youtubeMetadata}
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -199,6 +204,7 @@
             <button
                 class="join-item btn btn-md btn-accent text-white"
                 onclick={markStart}
+                disabled={!appState.videoSrc && !appState.youtubeMetadata}
             >
                 [I] {i18n.t("start")}
             </button>
@@ -231,6 +237,7 @@
             dir="ltr"
             aria-label="Playback Speed"
             style="background-image: none;"
+            disabled={!appState.videoSrc && !appState.youtubeMetadata}
         >
             {#each [0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 2.5, 3.0, 4.0] as rate}
                 <option value={rate}>{rate}x</option>

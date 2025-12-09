@@ -11,5 +11,7 @@ export default defineConfig({
     build: {
         outDir: 'dist',
         emptyOutDir: true,
+        target: 'esnext',
+        cssTarget: 'chrome111', // Support @property
     }
 });

@@ -481,6 +481,7 @@
                     e.target.value = formatTime(appState.currentTime);
                 }}
                 class="input input-xs input-bordered w-24 text-center font-mono focus:input-primary"
+                disabled={!appState.videoSrc && !appState.youtubeMetadata}
             />
             <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -506,10 +507,12 @@
         >
     </div>
 
-    <!-- Timeline Canvas -->
     <canvas
         bind:this={canvas}
-        class="w-full h-10 cursor-pointer block"
+        class="w-full h-10 block transition-opacity {!appState.videoSrc &&
+        !appState.youtubeMetadata
+            ? 'pointer-events-none opacity-50 cursor-not-allowed'
+            : 'cursor-pointer'}"
         onmousedown={handleMouseDown}
         onmousemove={handleMouseMove}
         onmouseup={handleMouseUp}
