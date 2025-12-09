@@ -74,8 +74,8 @@ def run_client():
     # Call Tool to get Snippets
     tool_args = {
         "component-examples": {
-            "modal.modal-using-dialog": True,
-            "modal.modal-with-close-button": True
+            "navbar.navbar-with-icon-indicator-and-dropdown": True,
+            "navbar.navbar-responsive": True
         }
     }
     

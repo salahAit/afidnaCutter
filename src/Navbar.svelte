@@ -46,16 +46,17 @@
 </script>
 
 <div
-  class="navbar bg-base-100 shadow-md px-4"
+  class="navbar bg-base-100 shadow-md px-2"
   dir={i18n.lang === "ar" ? "rtl" : "ltr"}
 >
-  <!-- Menu Button (Left) -->
-  <div class="flex-none">
-    <details class="dropdown dropdown-end">
+  <!-- Navbar Start -->
+  <div class="navbar-start gap-2">
+    <!-- Hamburger Menu (Mobile Only - Guide & About) -->
+    <details class="dropdown lg:hidden">
       <summary tabindex="0" role="button" class="btn btn-ghost btn-circle">
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          class="h-5 w-5"
+          class="h-6 w-6"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -70,7 +71,7 @@
       </summary>
       <ul
         tabindex="-1"
-        class="menu dropdown-content bg-base-200 rounded-box z-10 mt-3 w-52 p-2 shadow-lg border border-base-300"
+        class="menu menu-sm dropdown-content bg-base-200 rounded-box z-[100] mt-3 w-52 p-2 shadow-lg border border-base-300"
       >
         <li>
           <button type="button" onclick={openGuide}>📖 {i18n.t("guide")}</button
@@ -80,33 +81,49 @@
           <button type="button" onclick={openAbout}>ℹ️ {i18n.t("about")}</button
           >
         </li>
-        <li>
-          <button type="button" class="text-error">🚪 {i18n.t("quit")}</button>
-        </li>
       </ul>
     </details>
-  </div>
 
-  <!-- App Title (Center) -->
-  <div class="flex-1 text-center">
-    <div class="btn btn-ghost text-xl normal-case gap-2 font-bold mx-auto">
-      <img src={logo} alt="Logo" class="w-8 h-8 rounded-full" />
-      {i18n.t("appTitle")}
+    <!-- Desktop Buttons (Guide & About) -->
+    <div class="hidden lg:flex gap-1">
+      <button type="button" class="btn btn-ghost btn-sm" onclick={openGuide}>
+        📖 {i18n.t("guide")}
+      </button>
+      <button type="button" class="btn btn-ghost btn-sm" onclick={openAbout}>
+        ℹ️ {i18n.t("about")}
+      </button>
+    </div>
+
+    <!-- Logo (Larger) & Title -->
+    <div class="flex items-center gap-2">
+      <img src={logo} alt="Logo" class="w-12 h-12 rounded-full" />
+      <span class="text-xl font-bold hidden sm:inline"
+        >{i18n.t("appTitle")}</span
+      >
     </div>
   </div>
 
-  <!-- Right Controls -->
-  <div class="flex items-stretch gap-1">
+  <!-- Navbar Center (Hidden mostly to allow space) -->
+  <div class="navbar-center hidden lg:flex">
+    <!-- Title could go here if centered desired, but left is fine for now -->
+  </div>
+
+  <!-- Navbar End (Theme & Language - Always Visible) -->
+  <div class="navbar-end gap-1 flex-none">
     <!-- Theme Dropdown -->
-    <div class="dropdown dropdown-end">
-      <div tabindex="0" role="button" class="btn btn-ghost rounded-field gap-1">
-        <span class="text-lg">{getCurrentThemeDisplay().icon}</span>
+    <details class="dropdown dropdown-end">
+      <summary
+        tabindex="0"
+        role="button"
+        class="btn btn-ghost btn-sm btn-circle sm:btn-square gap-1"
+      >
+        <span class="text-xl">{getCurrentThemeDisplay().icon}</span>
         <span class="hidden sm:inline text-sm"
           >{getCurrentThemeDisplay().name}</span
         >
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          class="h-3 w-3"
+          class="h-3 w-3 hidden sm:block"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -118,10 +135,10 @@
             d="M19 9l-7 7-7-7"
           />
         </svg>
-      </div>
+      </summary>
       <ul
         tabindex="-1"
-        class="menu dropdown-content bg-base-200 rounded-box z-10 mt-3 w-48 p-2 shadow-lg border border-base-300"
+        class="menu dropdown-content bg-base-200 rounded-box z-[100] mt-3 w-48 p-2 shadow-lg border border-base-300"
       >
         <li>
           <button
@@ -148,18 +165,22 @@
           >
         </li>
       </ul>
-    </div>
+    </details>
 
     <!-- Language Dropdown -->
-    <div class="dropdown dropdown-end">
-      <div tabindex="0" role="button" class="btn btn-ghost rounded-field gap-1">
-        <span class="text-lg">{getCurrentLangDisplay().flag}</span>
+    <details class="dropdown dropdown-end">
+      <summary
+        tabindex="0"
+        role="button"
+        class="btn btn-ghost btn-sm btn-circle sm:btn-square gap-1"
+      >
+        <span class="text-xl">{getCurrentLangDisplay().flag}</span>
         <span class="hidden sm:inline text-sm"
           >{getCurrentLangDisplay().name}</span
         >
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          class="h-3 w-3"
+          class="h-3 w-3 hidden sm:block"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -171,10 +192,10 @@
             d="M19 9l-7 7-7-7"
           />
         </svg>
-      </div>
+      </summary>
       <ul
         tabindex="-1"
-        class="menu dropdown-content bg-base-200 rounded-box z-10 mt-3 w-40 p-2 shadow-lg border border-base-300"
+        class="menu dropdown-content bg-base-200 rounded-box z-[100] mt-3 w-40 p-2 shadow-lg border border-base-300"
       >
         <li>
           <button
@@ -191,7 +212,7 @@
           >
         </li>
       </ul>
-    </div>
+    </details>
   </div>
 </div>
 
@@ -228,41 +249,45 @@
     <div class="py-4 space-y-3">
       {#if i18n.lang === "ar"}
         <div class="flex gap-2">
-          <span class="text-primary font-bold">1.</span>
-          <span>اختر ملف فيديو محلي أو أدخل رابط يوتيوب.</span>
+          <span class="text-primary font-bold">1.</span><span
+            >اختر ملف فيديو محلي أو أدخل رابط يوتيوب.</span
+          >
         </div>
         <div class="flex gap-2">
-          <span class="text-primary font-bold">2.</span>
-          <span>اضغط على الفيديو أو اسحب على شريط الوقت لتحديد مقطع.</span>
+          <span class="text-primary font-bold">2.</span><span
+            >اضغط على الفيديو أو اسحب على شريط الوقت لتحديد مقطع.</span
+          >
         </div>
         <div class="flex gap-2">
-          <span class="text-primary font-bold">3.</span>
-          <span>استخدم أزرار "بداية" و "نهاية" لتحديد نقاط القص بدقة.</span>
+          <span class="text-primary font-bold">3.</span><span
+            >استخدم أزرار "بداية" و "نهاية" لتحديد نقاط القص بدقة.</span
+          >
         </div>
         <div class="flex gap-2">
-          <span class="text-primary font-bold">4.</span>
-          <span>اضغط "قص وتصدير" لحفظ المقاطع المحددة.</span>
+          <span class="text-primary font-bold">4.</span><span
+            >اضغط "قص وتصدير" لحفظ المقاطع المحددة.</span
+          >
         </div>
       {:else}
         <div class="flex gap-2">
-          <span class="text-primary font-bold">1.</span>
-          <span>Select a local video file or enter a YouTube URL.</span>
+          <span class="text-primary font-bold">1.</span><span
+            >Select a local video file or enter a YouTube URL.</span
+          >
         </div>
         <div class="flex gap-2">
-          <span class="text-primary font-bold">2.</span>
-          <span
+          <span class="text-primary font-bold">2.</span><span
             >Click on the video or drag on the timeline to select a segment.</span
           >
         </div>
         <div class="flex gap-2">
-          <span class="text-primary font-bold">3.</span>
-          <span
+          <span class="text-primary font-bold">3.</span><span
             >Use "Start" and "End" buttons to precisely mark cut points.</span
           >
         </div>
         <div class="flex gap-2">
-          <span class="text-primary font-bold">4.</span>
-          <span>Press "Trim & Export" to save the selected segments.</span>
+          <span class="text-primary font-bold">4.</span><span
+            >Press "Trim & Export" to save the selected segments.</span
+          >
         </div>
       {/if}
     </div>
