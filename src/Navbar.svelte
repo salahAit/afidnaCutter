@@ -163,8 +163,11 @@
     <!-- Logo (Larger) & Title -->
     <div class="flex items-center gap-2">
       <img src={logo} alt="Logo" class="w-12 h-12 rounded-full" />
-      <span class="text-xl font-bold hidden sm:inline"
-        >{i18n.t("appTitle")}</span
+      <!-- Small Screens: Short Title -->
+      <span class="text-xl font-bold lg:hidden">{i18n.t("appTitleShort")}</span>
+      <!-- Large Screens: Long Title -->
+      <span class="text-xl font-bold hidden lg:inline"
+        >{i18n.t("appTitleLong")}</span
       >
     </div>
   </div>
@@ -287,7 +290,7 @@
   <div class="modal-box" dir={i18n.lang === "ar" ? "rtl" : "ltr"}>
     <h3 class="font-bold text-lg flex items-center gap-2">
       <img src={logo} alt="Logo" class="w-10 h-10 rounded-full" />
-      {i18n.t("appTitle")}
+      {i18n.t("appTitleLong")}
     </h3>
     <p class="py-4">
       {i18n.lang === "ar"

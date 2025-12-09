@@ -78,7 +78,7 @@
       title: "Loading...",
       duration: 0,
       thumbnail: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
-      loading: false,
+      loading: true,
     };
     appState.mode = "youtube";
     appState.videoSrc = null;
@@ -179,7 +179,7 @@
                   {#if appState.downloadStatus.status === "downloading"}
                     <span class="loading loading-spinner loading-xs"></span> Downloading...
                   {:else}
-                    Download Full
+                    {i18n.t("downloadFull")}
                   {/if}
                 </button>
               </div>
@@ -215,30 +215,44 @@
 {#if showDownloadModal}
   <dialog class="modal modal-open">
     <div class="modal-box">
-      <h3 class="font-bold text-lg text-center mb-4">Select Quality</h3>
+      <h3 class="font-bold text-lg text-center mb-4">
+        {i18n.t("selectQuality")}
+      </h3>
 
       <div
         class="flex flex-col gap-2 max-h-60 overflow-y-auto mb-4 custom-scrollbar"
       >
-        {#each qualityOptions as option}
-          {#if isQualityAvailable(option.value)}
-            <label
-              class="label cursor-pointer hover:bg-base-200 rounded-lg px-2 border border-base-200 {selectedQuality ===
-              option.value
-                ? 'bg-base-200 border-primary'
-                : ''}"
-            >
-              <span class="label-text font-medium">{option.label}</span>
-              <input
-                type="radio"
-                name="quality"
-                class="radio radio-primary"
-                value={option.value}
-                bind:group={selectedQuality}
-              />
-            </label>
-          {/if}
-        {/each}
+        {#if appState.youtubeMetadata?.loading}
+          <div class="flex flex-col items-center justify-center py-8 gap-2">
+            <span class="loading loading-spinner loading-md text-primary"
+            ></span>
+            <span class="text-sm opacity-70">{i18n.t("fetchingQuality")}</span>
+          </div>
+        {:else}
+          {#each qualityOptions as option}
+            {#if isQualityAvailable(option.value)}
+              <label
+                class="label cursor-pointer hover:bg-base-200 rounded-lg px-2 border border-base-200 {selectedQuality ===
+                option.value
+                  ? 'bg-base-200 border-primary'
+                  : ''}"
+              >
+                <span class="label-text font-medium"
+                  >{option.value === "best"
+                    ? i18n.t("bestQuality")
+                    : option.label}</span
+                >
+                <input
+                  type="radio"
+                  name="quality"
+                  class="radio radio-primary"
+                  value={option.value}
+                  bind:group={selectedQuality}
+                />
+              </label>
+            {/if}
+          {/each}
+        {/if}
       </div>
 
       <div class="modal-action">
@@ -246,12 +260,13 @@
           <button
             class="btn btn-success flex-1 text-white"
             type="button"
-            onclick={startDownload}>Download</button
+            onclick={startDownload}>{i18n.t("download")}</button
           >
           <button
             class="btn btn-ghost flex-1"
             type="button"
-            onclick={() => (showDownloadModal = false)}>Cancel</button
+            onclick={() => (showDownloadModal = false)}
+            >{i18n.t("cancel")}</button
           >
         </form>
       </div>

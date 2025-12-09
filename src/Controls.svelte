@@ -68,9 +68,9 @@
         <div class="join shadow-sm" dir="ltr">
             <button
                 class="join-item btn btn-md btn-neutral tooltip"
-                data-tip="-1s"
+                data-tip={i18n.t("tipBack1s")}
                 onclick={() => step(-1)}
-                aria-label={i18n.t("back1Second")}
+                aria-label={i18n.t("stepBack1s")}
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -89,9 +89,9 @@
             </button>
             <button
                 class="join-item btn btn-md btn-neutral tooltip"
-                data-tip="-0.1s"
+                data-tip={i18n.t("tipBack01s")}
                 onclick={() => step(-0.1)}
-                aria-label={i18n.t("back01Second")}
+                aria-label={i18n.t("stepBack01s")}
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -149,9 +149,9 @@
             </button>
             <button
                 class="join-item btn btn-md btn-neutral tooltip"
-                data-tip="+0.1s"
+                data-tip={i18n.t("tipForward01s")}
                 onclick={() => step(0.1)}
-                aria-label={i18n.t("forward01Second")}
+                aria-label={i18n.t("stepForward01s")}
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -170,9 +170,9 @@
             </button>
             <button
                 class="join-item btn btn-md btn-neutral tooltip"
-                data-tip="+1s"
+                data-tip={i18n.t("tipForward1s")}
                 onclick={() => step(1)}
-                aria-label={i18n.t("forward1Second")}
+                aria-label={i18n.t("stepForward1s")}
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"

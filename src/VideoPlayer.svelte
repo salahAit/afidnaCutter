@@ -1,5 +1,5 @@
 <script>
-  import { appState, formatTime } from "./lib/state.svelte.js";
+  import { appState, resetState } from "./lib/state.svelte.js";
   import { i18n } from "./stores/i18n.svelte.js";
   import { onMount } from "svelte";
 
@@ -220,12 +220,14 @@
     }
   }
 
-  function resetPlayer() {
-    appState.videoSrc = null;
-    appState.youtubeMetadata = null;
-    appState.mode = "upload"; // Reset mode to upload
-    appState.videoFilename = null;
-    // Keep session ID just in case, or clear if needed.
+  function handleClose() {
+    if (appState.segments.length > 0 || appState.currentStart !== null) {
+      if (confirm(i18n.t("confirmCloseWorkLoss"))) {
+        resetState();
+      }
+    } else {
+      resetState();
+    }
   }
 </script>
 
@@ -237,7 +239,7 @@
   {#if appState.videoSrc || appState.youtubeMetadata}
     <!-- Close Button (Absolute Top-Right) -->
     <button
-      onclick={resetPlayer}
+      onclick={handleClose}
       class="absolute top-2 right-2 z-50 btn btn-circle btn-sm btn-error shadow-md opacity-80 hover:opacity-100"
       title="Close Video"
     >

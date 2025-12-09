@@ -43,3 +43,22 @@ export function addSegment(start, end) {
 export function sortSegments() {
     appState.segments.sort((a, b) => a.start - b.start);
 }
+
+export function resetState() {
+    appState.videoSrc = null;
+    appState.videoFilename = null;
+    appState.duration = 0;
+    appState.currentTime = 0;
+    appState.isPlaying = false;
+    appState.segments = [];
+    appState.currentStart = null;
+    appState.youtubePlayer = null;
+    appState.youtubeVideoId = null;
+    appState.hoverTime = null;
+    appState.isHoveringTimeline = false;
+    appState.youtubeUrl = '';
+    appState.youtubeMetadata = null;
+    appState.youtubeAnalyzing = false;
+    appState.mode = 'upload';
+    appState.downloadStatus = { status: 'idle', progress: 0 };
+}
