@@ -74,9 +74,8 @@ def run_client():
     # Call Tool to get Snippets
     tool_args = {
         "component-examples": {
-            "drawer.drawer-mobile": True,
-            "drawer.responsive-drawer": True,
-            "navbar.navbar-responsive": True
+            "modal.modal-using-dialog": True,
+            "modal.modal-with-close-button": True
         }
     }
     
