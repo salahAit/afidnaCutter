@@ -84,6 +84,13 @@
   let pendingCut = $state(false);
   let qualityWarning = $state("");
 
+  // Progress tracking
+  let isCutting = $state(false);
+  let cutProgress = $state(0);
+  let cutStatus = $state(""); // "downloading", "processing", "completed"
+  let cuttingSegmentIndex = $state(-1); // -1 means cutting all, otherwise the index of single segment being cut
+  let pendingSegmentIndex = $state(-1); // Store segment index when quality modal is shown
+
   // Check if selected quality is available
   function isQualityAvailable(quality) {
     if (quality === "best") return true;
@@ -111,6 +118,11 @@
     qualityWarning = "";
     showQualityModal = false;
     pendingCut = true;
+
+    // Restore the segment index from pending
+    cuttingSegmentIndex = pendingSegmentIndex;
+    pendingSegmentIndex = -1;
+
     const single = appState.pendingSingleSegment || null;
     appState.pendingSingleSegment = null; // Clear after using
     executeCut(single ? [single] : null);
@@ -143,6 +155,8 @@
 
   // Helper for single segment button
   function cutSingleSegment(index) {
+    pendingSegmentIndex = index; // Store for quality modal
+    cuttingSegmentIndex = index; // Track which segment is being cut
     const segment = { ...appState.segments[index], originalIndex: index + 1 };
     cutVideo(segment);
   }
@@ -153,43 +167,139 @@
     // Safety check
     if (!segments || segments.length === 0) return;
 
+    isCutting = true;
+    cutProgress = 0;
+    cutStatus = appState.mode === "youtube" ? "downloading" : "processing";
+
     const btn = document.getElementById("btn-cut");
     if (btn) {
       btn.disabled = true;
-      btn.textContent = i18n.t("processing");
+    }
+
+    // Ensure we have a session ID for cancellation tracking
+    if (!appState.sessionId) {
+      appState.sessionId =
+        "sess_" + Date.now() + "_" + Math.random().toString(36).substring(2, 9);
     }
 
     try {
       let response;
       if (appState.mode === "youtube") {
+        // Listen for cut progress events
+        const progressHandler = (data) => {
+          cutProgress = data.progress || 0;
+          if (data.status) cutStatus = data.status;
+        };
+        window.electron.on("cut-progress", progressHandler);
+
         // YouTube mode: use cut-youtube handler
         response = await window.electron.invoke("cut-youtube", {
           url: appState.youtubeUrl,
           segments: segments,
           quality: appState.youtubeQuality,
+          session_id: appState.sessionId,
         });
-        appState.sessionId = response.session_id;
+
+        window.electron.off("cut-progress", progressHandler);
+        // response.session_id should match appState.sessionId
       } else {
         // Local file mode
+        cutStatus = "processing";
+
+        // Listen for cut progress events (now supported for local files too)
+        const progressHandler = (data) => {
+          cutProgress = data.progress || 0;
+          if (data.status) cutStatus = data.status;
+        };
+        window.electron.on("cut-progress", progressHandler);
+
         response = await window.electron.invoke("cut-video", {
           filename: appState.videoFilename,
           session_id: appState.sessionId,
           segments: segments,
         });
+
+        window.electron.off("cut-progress", progressHandler);
       }
+
+      cutStatus = "completed";
+      cutProgress = 100;
 
       const event = new CustomEvent("cut-complete", {
         detail: response.output_files,
       });
       window.dispatchEvent(event);
+
+      // Keep showing completed for 2 seconds
+      setTimeout(() => {
+        isCutting = false;
+        cutProgress = 0;
+        cutStatus = "";
+        cuttingSegmentIndex = -1;
+      }, 2000);
     } catch (error) {
-      console.error(error);
-      alert(i18n.t("cutFailed") + ": " + error.message);
+      // Check if it was a cancellation error
+      if (error && error.message && error.message.includes("canceled")) {
+        console.log("Operation canceled by user");
+        cutStatus = "operationCanceled";
+        // Reset after short delay
+        setTimeout(() => {
+          isCutting = false;
+          cutProgress = 0;
+          cutStatus = "";
+          cuttingSegmentIndex = -1;
+        }, 1500);
+      } else {
+        console.error(error);
+        alert(i18n.t("cutFailed") + ": " + error.message);
+        isCutting = false;
+        cutProgress = 0;
+        cutStatus = "";
+        cuttingSegmentIndex = -1;
+      }
     } finally {
       if (btn) {
         btn.disabled = false;
-        btn.textContent = i18n.t("cutAll");
       }
+    }
+  }
+
+  async function cancelCut() {
+    if (!isCutting) return;
+    cutStatus = "canceling";
+    try {
+      // If sessionId is available (it should be for local, and youtube generates one internally but we might not have it unless we return it early?
+      // Wait, cut-youtube generates sessionId internally. We don't have it in frontend until it returns.
+      // This is a problem for cancelling the initial youtube download if we don't have the ID yet.
+      // BUT, executeCut awaiting the invoke means we are blocked.
+      // We need to change how we invoke or pass an ID from frontend.
+
+      // FIX: Generate sessionId in frontend or request it first?
+      // Actually `cut-youtube` generates it.
+      // We can't cancel a request that we are awaiting and don't know the ID of.
+      // SOLUTION: Pass a predefined sessionId from frontend.
+
+      // Let's modify executeCut to pass a sessionId if possible, or just look at `appState.sessionId`
+      // appState.sessionId is null for new YouTube operations until they finish.
+
+      // We need to generate a temporary ID for the operation.
+      // BUT `cut-youtube` generates its own.
+      // We should pass `sessionId` to `cut-youtube` optionally.
+
+      // Let's assume we can pass it. I will update handlers.js to accept it.
+
+      if (!appState.sessionId && appState.mode === "youtube") {
+        // We can't cancel if we don't have the ID.
+        // Quick fix: generate ID in frontend for YouTube operations too.
+        // See update to handlers below.
+      }
+
+      await window.electron.invoke(
+        "cancel-cut",
+        appState.sessionId || "temp-session-id",
+      );
+    } catch (err) {
+      console.error("Failed to cancel:", err);
     }
   }
 </script>
@@ -314,19 +424,126 @@
             </button>
           </div>
         </div>
+
+        <!-- Progress indicator for single segment cut -->
+        {#if isCutting && cuttingSegmentIndex === index}
+          <div class="mt-2 pt-2 border-t border-base-300">
+            <div class="flex justify-between items-center mb-1">
+              <span class="text-xs font-medium">
+                {#if cutStatus === "downloading"}
+                  {i18n.lang === "ar"
+                    ? "جاري القص والتحميل..."
+                    : "Cutting & Downloading..."}
+                {:else if cutStatus === "processing"}
+                  {i18n.lang === "ar" ? "جاري المعالجة..." : "Processing..."}
+                {:else if cutStatus === "completed"}
+                  {i18n.lang === "ar" ? "تم!" : "Done!"}
+                {:else}
+                  {i18n.t("processing")}
+                {/if}
+              </span>
+              <div class="flex items-center gap-2">
+                <span class="text-xs opacity-70"
+                  >{Math.round(cutProgress)}%</span
+                >
+                {#if cutStatus !== "completed"}
+                  <button
+                    class="btn btn-xs btn-circle btn-ghost text-error"
+                    onclick={cancelCut}
+                    title={i18n.t("cancel")}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      ><line x1="18" y1="6" x2="6" y2="18"></line><line
+                        x1="6"
+                        y1="6"
+                        x2="18"
+                        y2="18"
+                      ></line></svg
+                    >
+                  </button>
+                {/if}
+              </div>
+            </div>
+            <progress
+              class="progress {cutStatus === 'completed'
+                ? 'progress-success'
+                : 'progress-secondary'} w-full h-2"
+              value={cutProgress}
+              max="100"
+            ></progress>
+          </div>
+        {/if}
       </div>
     {/each}
   </div>
 
   <div class="p-4 border-t border-base-300">
-    <button
-      id="btn-cut"
-      class="btn btn-success w-full font-bold"
-      disabled={appState.segments.length === 0}
-      onclick={() => cutVideo()}
-    >
-      {i18n.t("cutAll")}
-    </button>
+    <!-- Progress indicator -->
+    {#if isCutting}
+      <div class="mb-3">
+        <div class="flex justify-between items-center mb-1">
+          <span class="text-sm font-medium">
+            {#if cutStatus === "downloading"}
+              {i18n.lang === "ar" ? "جاري التحميل..." : "Downloading..."}
+            {:else if cutStatus === "processing"}
+              {i18n.lang === "ar" ? "جاري المعالجة..." : "Processing..."}
+            {:else if cutStatus === "completed"}
+              {i18n.lang === "ar" ? "تم بنجاح!" : "Completed!"}
+            {:else}
+              {i18n.t("processing")}
+            {/if}
+          </span>
+          <span class="text-sm opacity-70">{Math.round(cutProgress)}%</span>
+        </div>
+        <progress
+          class="progress {cutStatus === 'completed'
+            ? 'progress-success'
+            : 'progress-primary'} w-full"
+          value={cutProgress}
+          max="100"
+        ></progress>
+      </div>
+    {/if}
+
+    {#if isCutting && cutStatus !== "completed"}
+      <button class="btn btn-error w-full font-bold" onclick={cancelCut}>
+        {#if cutStatus === "canceling"}
+          <span class="loading loading-spinner loading-sm"></span>
+          {i18n.lang === "ar" ? "جاري الإلغاء..." : "Canceling..."}
+        {:else}
+          {i18n.t("cancel")}
+        {/if}
+      </button>
+    {:else}
+      <button
+        id="btn-cut"
+        class="btn btn-success w-full font-bold"
+        disabled={appState.segments.length === 0 || isCutting}
+        onclick={() => cutVideo()}
+      >
+        {#if isCutting}
+          <span class="loading loading-spinner loading-sm"></span>
+          {cutStatus === "downloading"
+            ? i18n.lang === "ar"
+              ? "تحميل"
+              : "Downloading"
+            : i18n.lang === "ar"
+              ? "معالجة"
+              : "Processing"}
+        {:else}
+          {i18n.t("cutAll")}
+        {/if}
+      </button>
+    {/if}
   </div>
 </div>
 

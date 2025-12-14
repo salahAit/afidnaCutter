@@ -29,7 +29,31 @@ ffmpeg.setFfprobePath(ffprobePath);
 // Store active tasks status
 const tasks = new Map();
 
+// Store active operations to allow cancellation
+const activeOperations = new Map(); // sessionId -> { process, type: 'ffmpeg'|'ytdlp' }
+
 const handlers = {
+    'cancel-cut': async (event, sessionId) => {
+        if (activeOperations.has(sessionId)) {
+            const op = activeOperations.get(sessionId);
+            try {
+                op.cancelled = true; // Mark as cancelled first
+
+                if (op.process) {
+                    console.log(`Cancelling operation for session ${sessionId}`);
+                    op.process.kill('SIGKILL'); // Force kill
+                }
+
+                // Do not delete immediately, let the main function cleanup
+                return { success: true };
+            } catch (err) {
+                console.error(`Failed to cancel operation for session ${sessionId}:`, err);
+                return { success: false, error: err.message };
+            }
+        }
+        return { success: false, error: 'No active operation found' };
+    },
+
     'upload-video': async (event, { filePath }) => {
         const sessionId = uuidv4();
         const sessionDir = path.join(UPLOADS_DIR, sessionId);
@@ -47,8 +71,6 @@ const handlers = {
         };
     },
 
-
-
     'cut-video': async (event, { filename, session_id, segments }) => {
         const sessionDir = path.join(UPLOADS_DIR, session_id);
         const inputPath = normalizePath(path.join(sessionDir, filename));
@@ -58,26 +80,42 @@ const handlers = {
         const ext = path.extname(filename); // Get extension from input file
         const outputFiles = [];
 
-        for (let i = 0; i < segments.length; i++) {
-            const { start, end, originalIndex } = segments[i];
-            const outputFilename = `segment_${originalIndex || (i + 1)}${ext}`; // Use original index if present
-            const outputPath = normalizePath(path.join(outputDir, outputFilename));
+        // Check if cancelled before starting
+        if (activeOperations.has(session_id) && activeOperations.get(session_id).cancelled) {
+            throw new Error('Operation canceled');
+        }
 
-            await new Promise((resolve, reject) => {
-                ffmpeg(inputPath)
-                    .setStartTime(start)
-                    .setDuration(end - start)
-                    .outputOptions(['-c copy'])
-                    .output(outputPath)
-                    .on('start', (commandLine) => {
-                        console.log('Spawned Ffmpeg with command: ' + commandLine);
-                    })
-                    .on('end', () => resolve())
-                    .on('error', (err) => reject(err))
-                    .run();
-            });
+        try {
+            for (let i = 0; i < segments.length; i++) {
+                const { start, end, originalIndex } = segments[i];
+                const outputFilename = `segment_${originalIndex || (i + 1)}${ext}`; // Use original index if present
+                const outputPath = normalizePath(path.join(outputDir, outputFilename));
 
-            outputFiles.push(outputFilename);
+                await new Promise((resolve, reject) => {
+                    const proc = ffmpeg(inputPath)
+                        .setStartTime(start)
+                        .setDuration(end - start)
+                        .outputOptions(['-c copy'])
+                        .output(outputPath)
+                        .on('start', (commandLine) => {
+                            console.log('Spawned Ffmpeg with command: ' + commandLine);
+                        })
+                        .on('end', () => resolve())
+                        .on('error', (err) => reject(err));
+
+                    const ffmpegProc = proc.run();
+                    // Store process reference for cancellation
+                    // Note: fluent-ffmpeg .run() doesn't return the child process directly in a way we can kill easily via standard node cp,
+                    // but we can access the internal request or use the kill method of the command if available?
+                    // Actually fluent-ffmpeg has a .kill() method on the command object.
+
+                    activeOperations.set(session_id, { process: proc, type: 'ffmpeg' });
+                });
+
+                outputFiles.push(outputFilename);
+            }
+        } finally {
+            activeOperations.delete(session_id);
         }
 
         return { output_files: outputFiles };
@@ -278,6 +316,60 @@ const handlers = {
         return { success: true };
     },
 
+    'open-facebook-window': async () => {
+        const win = new BrowserWindow({
+            width: 1280,
+            height: 800,
+            title: "Facebook Browser",
+            autoHideMenuBar: true,
+            webPreferences: {
+                nodeIntegration: false,
+                contextIsolation: true
+            }
+        });
+        // Set User-Agent to avoid detection
+        win.webContents.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+        await win.loadURL('https://www.facebook.com/watch');
+        return { success: true };
+    },
+
+    'open-tiktok-window': async () => {
+        const win = new BrowserWindow({
+            width: 1280,
+            height: 800,
+            title: "TikTok Browser",
+            autoHideMenuBar: true,
+            webPreferences: {
+                nodeIntegration: false,
+                contextIsolation: true
+            }
+        });
+        // Set User-Agent to avoid detection
+        win.webContents.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+        try {
+            await win.loadURL('https://www.tiktok.com');
+        } catch (e) {
+            // TikTok may redirect, ignore abort errors
+            console.log('TikTok load warning:', e.message);
+        }
+        return { success: true };
+    },
+
+    'open-google-window': async () => {
+        const win = new BrowserWindow({
+            width: 1280,
+            height: 800,
+            title: "Google Search",
+            autoHideMenuBar: true,
+            webPreferences: {
+                nodeIntegration: false,
+                contextIsolation: true
+            }
+        });
+        await win.loadURL('https://www.google.com');
+        return { success: true };
+    },
+
     'select-file': async () => {
         const { canceled, filePaths } = await dialog.showOpenDialog({
             properties: ['openFile'],
@@ -440,8 +532,8 @@ const handlers = {
         });
     },
 
-    'cut-youtube': async (event, { url, segments, quality = 'best' }) => {
-        const sessionId = uuidv4();
+    'cut-youtube': async (event, { url, segments, quality = 'best', session_id }) => {
+        const sessionId = session_id || uuidv4();
         const sessionDir = path.join(UPLOADS_DIR, sessionId);
         await fs.ensureDir(sessionDir);
         const outputDir = path.join(sessionDir, 'outputs');
@@ -466,73 +558,145 @@ const handlers = {
 
         const outputFiles = [];
 
-        for (let chunkIdx = 0; chunkIdx < chunks.length; chunkIdx++) {
-            const chunk = chunks[chunkIdx];
-            const chunkFilename = `chunk_${chunkIdx + 1}.mp4`;
-            const chunkPath = path.join(sessionDir, chunkFilename);
+        try {
+            for (let chunkIdx = 0; chunkIdx < chunks.length; chunkIdx++) {
+                // Check cancellation before each chunk
+                if (activeOperations.has(sessionId) && activeOperations.get(sessionId).cancelled) {
+                    throw new Error('Operation canceled');
+                }
 
-            // Step 2: Download chunk using yt-dlp --download-sections
-            const sectionArg = `*${chunk.start}-${chunk.end}`;
-            console.log(`Downloading chunk ${chunkIdx + 1}: ${sectionArg}`);
+                const chunk = chunks[chunkIdx];
+                const chunkFilename = `chunk_${chunkIdx + 1}.mp4`;
+                const chunkPath = path.join(sessionDir, chunkFilename);
 
-            await new Promise((resolve, reject) => {
-                const ytdlp = spawn('yt-dlp', [
-                    '--no-playlist',
-                    '-f', formatArg,
-                    '--download-sections', sectionArg,
-                    '-o', chunkPath,
-                    '--force-keyframes-at-cuts',
-                    url
-                ]);
-
-                ytdlp.stdout.on('data', (data) => console.log('yt-dlp:', data.toString()));
-                ytdlp.stderr.on('data', (data) => console.log('yt-dlp err:', data.toString()));
-
-                ytdlp.on('close', (code) => {
-                    if (code !== 0) {
-                        reject(new Error(`yt-dlp failed with code ${code}`));
-                    } else {
-                        resolve();
-                    }
-                });
-
-                ytdlp.on('error', (err) => {
-                    reject(new Error('Failed to start yt-dlp: ' + err.message));
-                });
-            });
-
-            // Step 3: Extract exact segments from the chunk
-            const segmentsInChunk = segments.filter(seg =>
-                seg.start >= chunk.start && seg.end <= chunk.end
-            );
-
-            for (let segIdx = 0; segIdx < segmentsInChunk.length; segIdx++) {
-                const seg = segmentsInChunk[segIdx];
-                // Calculate relative time within the chunk
-                const relativeStart = seg.start - chunk.start;
-                const duration = seg.end - seg.start;
-
-                // Use original index for filename if available to prevent overwrites
-                const usedIndex = seg.originalIndex || (outputFiles.length + 1);
-                const outputFilename = `segment_${usedIndex}.mp4`;
-                const outputPath = path.join(outputDir, outputFilename);
+                // Step 2: Download chunk using yt-dlp --download-sections
+                const sectionArg = `*${chunk.start}-${chunk.end}`;
+                console.log(`Downloading chunk ${chunkIdx + 1}: ${sectionArg}`);
 
                 await new Promise((resolve, reject) => {
-                    ffmpeg(chunkPath)
-                        .setStartTime(relativeStart)
-                        .setDuration(duration)
-                        .outputOptions(['-c copy'])
-                        .output(outputPath)
-                        .on('end', () => resolve())
-                        .on('error', (err) => reject(err))
-                        .run();
+                    const ytdlp = spawn('yt-dlp', [
+                        '--no-playlist',
+                        '-f', formatArg,
+                        '--download-sections', sectionArg,
+                        '-o', chunkPath,
+                        '--force-keyframes-at-cuts',
+                        '--newline',
+                        url
+                    ]);
+
+                    activeOperations.set(sessionId, { process: ytdlp, type: 'ytdlp' });
+
+                    ytdlp.stdout.on('data', (data) => {
+                        const output = data.toString();
+                        console.log('yt-dlp:', output);
+
+                        // Parse progress from yt-dlp output
+                        const progressMatch = output.match(/\[download\]\s+(\d+\.?\d*)%/);
+                        if (progressMatch) {
+                            const downloadProgress = parseFloat(progressMatch[1]);
+                            // Calculate overall progress: download is first half, processing is second half
+                            const chunkWeight = 100 / chunks.length;
+                            const overallProgress = (chunkIdx * chunkWeight) + (downloadProgress / 100 * chunkWeight * 0.7);
+                            event.sender.send('cut-progress', {
+                                progress: Math.round(overallProgress),
+                                status: 'downloading'
+                            });
+                        }
+                    });
+                    ytdlp.stderr.on('data', (data) => console.log('yt-dlp err:', data.toString()));
+
+                    ytdlp.on('close', (code) => {
+                        // If killed (cancellation), code might be null or signal based
+                        if (code !== 0 && code !== null) {
+                            reject(new Error(`yt-dlp failed with code ${code}`));
+                        } else {
+                            resolve();
+                        }
+                    });
+
+                    ytdlp.on('error', (err) => {
+                        reject(new Error('Failed to start yt-dlp: ' + err.message));
+                    });
                 });
 
-                outputFiles.push(outputFilename);
-            }
+                // Check cancellation after download
+                if (activeOperations.has(sessionId) && activeOperations.get(sessionId).cancelled) {
+                    throw new Error('Operation canceled');
+                }
 
-            // Cleanup chunk file
-            await fs.remove(chunkPath);
+                // Step 3: Extract exact segments from the chunk
+                const segmentsInChunk = segments.filter(seg =>
+                    seg.start >= chunk.start && seg.end <= chunk.end
+                );
+
+                for (let segIdx = 0; segIdx < segmentsInChunk.length; segIdx++) {
+                    // Check cancellation before each segment processing
+                    if (activeOperations.has(sessionId) && activeOperations.get(sessionId).cancelled) {
+                        throw new Error('Operation canceled');
+                    }
+
+                    const seg = segmentsInChunk[segIdx];
+                    // Calculate relative time within the chunk
+                    const relativeStart = seg.start - chunk.start;
+                    const duration = seg.end - seg.start;
+
+                    // Use original index for filename if available to prevent overwrites
+                    const usedIndex = seg.originalIndex || (outputFiles.length + 1);
+                    const outputFilename = `segment_${usedIndex}.mp4`;
+                    const outputPath = path.join(outputDir, outputFilename);
+
+                    // Send processing progress
+                    const chunkWeight = 100 / chunks.length;
+                    const segmentProgress = (segIdx + 1) / segmentsInChunk.length;
+                    const overallProgress = (chunkIdx * chunkWeight) + (chunkWeight * 0.7) + (chunkWeight * 0.3 * segmentProgress);
+                    event.sender.send('cut-progress', {
+                        progress: Math.round(overallProgress),
+                        status: 'processing'
+                    });
+
+                    // Verify chunk file exists
+                    if (!await fs.pathExists(chunkPath)) {
+                        throw new Error(`Chunk file not found: ${chunkPath}`);
+                    }
+                    const stats = await fs.stat(chunkPath);
+                    console.log(`Chunk file size: ${stats.size} bytes`);
+                    if (stats.size === 0) {
+                        throw new Error(`Chunk file is empty: ${chunkPath}`);
+                    }
+
+                    console.log(`Processing segment ${segIdx + 1}/${segmentsInChunk.length} in chunk ${chunkIdx + 1}`);
+
+                    await new Promise((resolve, reject) => {
+                        const proc = ffmpeg(chunkPath)
+                            .setStartTime(relativeStart)
+                            .setDuration(duration)
+                            .outputOptions(['-c copy'])
+                            .output(outputPath)
+                            .on('start', (cmd) => {
+                                console.log('ffmpeg command:', cmd);
+                            })
+                            // .on('stderr', ...) // Optional detailed logging
+                            .on('end', () => {
+                                console.log(`ffmpeg finished: ${outputFilename}`);
+                                resolve();
+                            })
+                            .on('error', (err, stdout, stderr) => {
+                                console.error('ffmpeg error:', err.message);
+                                reject(err);
+                            });
+
+                        const ffmpegProc = proc.run();
+                        activeOperations.set(sessionId, { process: ffmpegProc, type: 'ffmpeg' });
+                    });
+
+                    outputFiles.push(outputFilename);
+                }
+
+                // Cleanup chunk file
+                await fs.remove(chunkPath);
+            }
+        } finally {
+            activeOperations.delete(sessionId);
         }
 
         return { session_id: sessionId, output_files: outputFiles };

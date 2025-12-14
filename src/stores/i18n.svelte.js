@@ -20,6 +20,8 @@ export const translations = {
         quit: "خروج",
         quality: "الجودة",
         cancel: "إلغاء",
+        canceling: "جاري الإلغاء...",
+        operationCanceled: "تم إلغاء العملية",
         confirm: "تأكيد",
         processing: "جاري المعالجة...",
         success: "تمت العملية بنجاح!",
@@ -59,12 +61,12 @@ export const translations = {
         // Navbar / Global
         guide: "دليل الاستخدام",
         guideTitle: "دليل الاستخدام",
-        guideStep1: "اختر ملف فيديو محلي أو أدخل رابط يوتوب.",
+        guideStep1: "اختر ملف فيديو محلي أو أدخل رابط فيديو من YouTube, Facebook, TikTok أو أي موقع آخر.",
         guideStep2: "اضغط على الفيديو أو اسحب على شريط الوقت لتحديد مقطع.",
         guideStep3: "استخدم أزرار 'بداية' و 'نهاية' لتحديد نقاط القص بدقة.",
         guideStep4: "اضغط 'قص وتصدير' لحفظ المقاطع المحددة.",
         aboutTitle: "حول البرنامج",
-        aboutDesc: "برنامج احترافي لقص وتحرير مقاطع الفيديو. يدعم الملفات المحلية وروابط يوتوب.",
+        aboutDesc: "برنامج احترافي لقص وتحرير مقاطع الفيديو. يدعم الملفات المحلية وأكثر من 1000 موقع (YouTube, Facebook, TikTok, وغيرها).",
         version: "الإصدار",
         close: "إغلاق",
 
@@ -108,7 +110,7 @@ export const translations = {
         markerStart: "البداية",
 
         // Player
-        youtubeEmptyState: "أدخل رابط يوتوب في الأعلى واضغط عرض",
+        youtubeEmptyState: "أدخل رابط الفيديو في الأعلى واضغط عرض",
         closeVideo: "إغلاق الفيديو",
         play: "تشغيل",
         delete: "حذف",
@@ -146,6 +148,8 @@ export const translations = {
         quit: "Quit",
         quality: "Quality",
         cancel: "Cancel",
+        canceling: "Canceling...",
+        operationCanceled: "Operation canceled",
         confirm: "Confirm",
         processing: "Processing...",
         success: "Operation Successful!",
@@ -185,12 +189,12 @@ export const translations = {
         // Navbar / Global
         guide: "Guide",
         guideTitle: "User Guide",
-        guideStep1: "Select a local video file or enter a YouTube URL.",
+        guideStep1: "Select a local video file or enter a video URL from YouTube, Facebook, TikTok, or any other site.",
         guideStep2: "Click on the video or drag on the timeline to select a segment.",
         guideStep3: "Use 'Start' and 'End' buttons to precisely mark cut points.",
         guideStep4: "Press 'Trim & Export' to save the selected segments.",
         aboutTitle: "About",
-        aboutDesc: "A professional video cutting and editing application. Supports local files and YouTube links.",
+        aboutDesc: "A professional video cutting and editing application. Supports local files and 1000+ sites (YouTube, Facebook, TikTok, and more).",
         version: "Version",
         close: "Close",
 
@@ -234,6 +238,7 @@ export const translations = {
         markerStart: "Start",
 
         // Player
+        youtubeEmptyState: "Enter video URL above and click Display",
         closeVideo: "Close Video",
         play: "Play",
         delete: "Delete",
