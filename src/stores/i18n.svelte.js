@@ -112,7 +112,18 @@ export const translations = {
         closeVideo: "إغلاق الفيديو",
         play: "تشغيل",
         delete: "حذف",
-        delete: "حذف",
+
+        // Multi-platform
+        facebook: "فايسبوك",
+        tiktok: "تيك توك",
+        otherUrl: "رابط آخر",
+        urlPlaceholder: "ألصق الرابط هنا...",
+        facebookUrlPlaceholder: "ألصق رابط فايسبوك هنا...",
+        tiktokUrlPlaceholder: "ألصق رابط تيك توك هنا...",
+        browseFacebook: "افتح فايسبوك للنسخ",
+        browseTiktok: "افتح تيك توك للنسخ",
+        or: "أو",
+        duration: "المدة:",
     },
     en: {
         appTitleShort: "AFIDNA CUTTER",
@@ -223,10 +234,21 @@ export const translations = {
         markerStart: "Start",
 
         // Player
-        youtubeEmptyState: "Enter a YouTube URL above and click Display",
         closeVideo: "Close Video",
         play: "Play",
         delete: "Delete",
+
+        // Multi-platform
+        facebook: "Facebook",
+        tiktok: "TikTok",
+        otherUrl: "Other URL",
+        urlPlaceholder: "Paste URL here...",
+        facebookUrlPlaceholder: "Paste Facebook URL here...",
+        tiktokUrlPlaceholder: "Paste TikTok URL here...",
+        browseFacebook: "Open Facebook to Copy",
+        browseTiktok: "Open TikTok to Copy",
+        or: "or",
+        duration: "Duration:",
     }
 };
 

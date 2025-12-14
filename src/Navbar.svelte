@@ -1,9 +1,9 @@
 <script>
   import { appState } from "./lib/state.svelte.js";
   import { i18n } from "./stores/i18n.svelte.js";
-  import logo from "../logo-Ar.webp";
+  import logoAr from "../logo-Ar.webp";
+  import logoEn from "../logo-EN.webp";
 
-  let aboutModal;
   let guideModal;
 
   function setTheme(theme) {
@@ -20,7 +20,7 @@
   }
 
   function openAbout() {
-    aboutModal?.showModal();
+    appState.showAboutModal = true;
   }
 
   function openGuide() {
@@ -162,7 +162,11 @@
 
     <!-- Logo (Larger) & Title -->
     <div class="flex items-center gap-2">
-      <img src={logo} alt="Logo" class="w-12 h-12 rounded-full" />
+      <img
+        src={i18n.lang === "ar" ? logoAr : logoEn}
+        alt="Logo"
+        class="w-12 h-12 rounded-full"
+      />
       <!-- Small Screens: Short Title -->
       <span class="text-xl font-bold lg:hidden">{i18n.t("appTitleShort")}</span>
       <!-- Large Screens: Long Title -->
@@ -282,30 +286,6 @@
     </div>
   </div>
 </div>
-
-<!-- About Modal -->
-<dialog bind:this={aboutModal} class="modal">
-  <div class="modal-box" dir={i18n.lang === "ar" ? "rtl" : "ltr"}>
-    <h3 class="font-bold text-lg flex items-center gap-2">
-      <img src={logo} alt="Logo" class="w-10 h-10 rounded-full" />
-      {i18n.t("appTitleLong")}
-    </h3>
-    <p class="py-4">
-      {i18n.t("aboutDesc")}
-    </p>
-    <p class="text-sm opacity-70">
-      {i18n.t("version")}: 2.0.0
-    </p>
-    <div class="modal-action">
-      <form method="dialog">
-        <button class="btn">{i18n.t("close")}</button>
-      </form>
-    </div>
-  </div>
-  <form method="dialog" class="modal-backdrop">
-    <button>close</button>
-  </form>
-</dialog>
 
 <!-- Guide Modal -->
 <dialog bind:this={guideModal} class="modal">

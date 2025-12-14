@@ -67,39 +67,78 @@
     return null;
   }
 
-  function handleShowVideo() {
-    const videoId = extractVideoId(appState.youtubeUrl);
-    if (!videoId) {
-      alert("Please enter a valid YouTube URL");
-      return;
-    }
-    appState.youtubeMetadata = {
-      id: videoId,
-      title: "Loading...",
-      duration: 0,
-      thumbnail: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
-      loading: true,
-    };
-    appState.mode = "youtube";
-    appState.videoSrc = null;
-    appState.segments = [];
-    fetchMetadata(videoId);
+  function isYouTubeUrl(url) {
+    return /youtube\.com|youtu\.be/.test(url);
   }
 
-  async function fetchMetadata(videoId) {
-    try {
-      const metadata = await window.electron.invoke("analyze-youtube", {
-        url: `https://www.youtube.com/watch?v=${videoId}`,
-      });
-      if (appState.youtubeMetadata?.id === videoId) {
-        appState.youtubeMetadata = { ...metadata, id: videoId, loading: false };
-        appState.duration = metadata.duration;
+  function handleShowVideo() {
+    const url = appState.youtubeUrl?.trim();
+    if (!url) {
+      alert(
+        i18n.lang === "ar"
+          ? "الرجاء إدخال رابط صحيح"
+          : "Please enter a valid URL",
+      );
+      return;
+    }
+
+    // For YouTube, extract video ID for iframe preview
+    if (isYouTubeUrl(url)) {
+      const videoId = extractVideoId(url);
+      if (!videoId) {
+        alert(
+          i18n.lang === "ar"
+            ? "الرجاء إدخال رابط يوتوب صحيح"
+            : "Please enter a valid YouTube URL",
+        );
+        return;
       }
+      appState.youtubeMetadata = {
+        id: videoId,
+        title: i18n.lang === "ar" ? "جاري التحميل..." : "Loading...",
+        duration: 0,
+        thumbnail: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
+        loading: true,
+        isYouTube: true,
+      };
+      appState.mode = "youtube";
+      appState.videoSrc = null;
+      appState.segments = [];
+      fetchMetadata(url);
+    } else {
+      // For other platforms, just fetch metadata
+      appState.youtubeMetadata = {
+        id: null,
+        title: i18n.lang === "ar" ? "جاري التحميل..." : "Loading...",
+        duration: 0,
+        thumbnail: "",
+        loading: true,
+        isYouTube: false,
+      };
+      appState.mode = "youtube"; // Reuse youtube mode for online videos
+      appState.videoSrc = null;
+      appState.segments = [];
+      fetchMetadata(url);
+    }
+  }
+
+  async function fetchMetadata(url) {
+    try {
+      const metadata = await window.electron.invoke("analyze-youtube", { url });
+      appState.youtubeMetadata = {
+        ...appState.youtubeMetadata,
+        ...metadata,
+        loading: false,
+      };
+      appState.duration = metadata.duration;
     } catch (error) {
       console.error(i18n.t("failedToFetchMetadata"), error);
-      if (appState.youtubeMetadata?.id === videoId) {
-        appState.youtubeMetadata.loading = false;
-      }
+      appState.youtubeMetadata = {
+        ...appState.youtubeMetadata,
+        loading: false,
+        title:
+          i18n.lang === "ar" ? "فشل تحميل البيانات" : "Failed to load metadata",
+      };
     }
   }
 </script>
@@ -112,7 +151,7 @@
     <!-- Blueprint Tabs -->
     <div
       role="tablist"
-      class="tabs tabs-box justify-center mb-6 w-full max-w-md mx-auto"
+      class="tabs tabs-box justify-center mb-6 w-full max-w-2xl mx-auto flex-wrap"
     >
       <button
         role="tab"
@@ -125,11 +164,41 @@
         role="tab"
         class="tab {appState.activeTab === 'youtube'
           ? 'tab-active'
-          : ''} flex items-center gap-2"
+          : ''} flex items-center gap-1"
         onclick={() => (appState.activeTab = "youtube")}
       >
         <span class="text-error">▶</span>
         {i18n.t("youtube")}
+      </button>
+      <button
+        role="tab"
+        class="tab {appState.activeTab === 'facebook'
+          ? 'tab-active'
+          : ''} flex items-center gap-1"
+        onclick={() => (appState.activeTab = "facebook")}
+      >
+        <span class="text-blue-600">📘</span>
+        {i18n.t("facebook")}
+      </button>
+      <button
+        role="tab"
+        class="tab {appState.activeTab === 'tiktok'
+          ? 'tab-active'
+          : ''} flex items-center gap-1"
+        onclick={() => (appState.activeTab = "tiktok")}
+      >
+        <span>🎵</span>
+        {i18n.t("tiktok")}
+      </button>
+      <button
+        role="tab"
+        class="tab {appState.activeTab === 'other'
+          ? 'tab-active'
+          : ''} flex items-center gap-1"
+        onclick={() => (appState.activeTab = "other")}
+      >
+        <span>🔗</span>
+        {i18n.t("otherUrl")}
       </button>
     </div>
 
@@ -205,6 +274,264 @@
               </h3>
               <p class="text-sm opacity-70">
                 Duration: {formatTime(appState.youtubeMetadata.duration)}
+              </p>
+              <div class="card-actions justify-end mt-2">
+                <button
+                  class="btn btn-success btn-sm"
+                  disabled={appState.downloadStatus.status === "downloading"}
+                  onclick={() => (showDownloadModal = true)}
+                >
+                  {#if appState.downloadStatus.status === "downloading"}
+                    <span class="loading loading-spinner loading-xs"></span> Downloading...
+                  {:else}
+                    {i18n.t("downloadFull")}
+                  {/if}
+                </button>
+              </div>
+            </div>
+          </div>
+        {/if}
+      </div>
+    {/if}
+
+    <!-- Facebook Tab Input -->
+    {#if appState.activeTab === "facebook"}
+      <div class="w-full max-w-2xl mx-auto space-y-6">
+        <div class="join w-full">
+          <input
+            type="text"
+            placeholder={i18n.t("facebookUrlPlaceholder")}
+            bind:value={appState.youtubeUrl}
+            class="input input-bordered join-item w-full"
+            dir="ltr"
+          />
+          <button
+            class="btn btn-primary join-item font-bold"
+            onclick={handleShowVideo}
+          >
+            {i18n.t("display")}
+          </button>
+        </div>
+
+        <!-- Browse Facebook Button -->
+        <div class="mt-2 text-center w-full">
+          <div class="divider text-xs opacity-50 my-1">{i18n.t("or")}</div>
+          <button
+            class="btn btn-outline btn-sm btn-primary w-full gap-2"
+            onclick={() =>
+              window.electron.invoke(
+                "open-external",
+                "https://www.facebook.com",
+              )}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              ><path
+                d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
+              /><polyline points="15 3 21 3 21 9" /><line
+                x1="10"
+                y1="14"
+                x2="21"
+                y2="3"
+              /></svg
+            >
+            <span>📘 {i18n.t("browseFacebook")}</span>
+          </button>
+        </div>
+
+        {#if appState.youtubeMetadata}
+          <div
+            class="card card-side bg-base-100 shadow-sm border border-base-300 overflow-hidden"
+          >
+            <figure class="w-1/3">
+              <img
+                src={appState.youtubeMetadata.thumbnail}
+                alt="Thumbnail"
+                class="h-full w-full object-cover"
+              />
+            </figure>
+            <div class="card-body p-4 w-2/3">
+              <h3 class="card-title text-base" dir="auto">
+                {appState.youtubeMetadata.title}
+              </h3>
+              <p class="text-sm opacity-70">
+                {i18n.t("duration")}
+                {formatTime(appState.youtubeMetadata.duration)}
+              </p>
+              <div class="card-actions justify-end mt-2">
+                <button
+                  class="btn btn-success btn-sm"
+                  disabled={appState.downloadStatus.status === "downloading"}
+                  onclick={() => (showDownloadModal = true)}
+                >
+                  {#if appState.downloadStatus.status === "downloading"}
+                    <span class="loading loading-spinner loading-xs"></span> Downloading...
+                  {:else}
+                    {i18n.t("downloadFull")}
+                  {/if}
+                </button>
+              </div>
+            </div>
+          </div>
+        {/if}
+      </div>
+    {/if}
+
+    <!-- TikTok Tab Input -->
+    {#if appState.activeTab === "tiktok"}
+      <div class="w-full max-w-2xl mx-auto space-y-6">
+        <div class="join w-full">
+          <input
+            type="text"
+            placeholder={i18n.t("tiktokUrlPlaceholder")}
+            bind:value={appState.youtubeUrl}
+            class="input input-bordered join-item w-full"
+            dir="ltr"
+          />
+          <button
+            class="btn join-item font-bold"
+            style="background: linear-gradient(45deg, #00f2ea, #ff0050); color: white; border: none;"
+            onclick={handleShowVideo}
+          >
+            {i18n.t("display")}
+          </button>
+        </div>
+
+        <!-- Browse TikTok Button -->
+        <div class="mt-2 text-center w-full">
+          <div class="divider text-xs opacity-50 my-1">{i18n.t("or")}</div>
+          <button
+            class="btn btn-outline btn-sm w-full gap-2"
+            style="border-color: #ff0050; color: #ff0050;"
+            onclick={() =>
+              window.electron.invoke("open-external", "https://www.tiktok.com")}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              ><path
+                d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
+              /><polyline points="15 3 21 3 21 9" /><line
+                x1="10"
+                y1="14"
+                x2="21"
+                y2="3"
+              /></svg
+            >
+            <span>🎵 {i18n.t("browseTiktok")}</span>
+          </button>
+        </div>
+
+        {#if appState.youtubeMetadata}
+          <div
+            class="card card-side bg-base-100 shadow-sm border border-base-300 overflow-hidden"
+          >
+            <figure class="w-1/3">
+              <img
+                src={appState.youtubeMetadata.thumbnail}
+                alt="Thumbnail"
+                class="h-full w-full object-cover"
+              />
+            </figure>
+            <div class="card-body p-4 w-2/3">
+              <h3 class="card-title text-base" dir="auto">
+                {appState.youtubeMetadata.title}
+              </h3>
+              <p class="text-sm opacity-70">
+                {i18n.t("duration")}
+                {formatTime(appState.youtubeMetadata.duration)}
+              </p>
+              <div class="card-actions justify-end mt-2">
+                <button
+                  class="btn btn-success btn-sm"
+                  disabled={appState.downloadStatus.status === "downloading"}
+                  onclick={() => (showDownloadModal = true)}
+                >
+                  {#if appState.downloadStatus.status === "downloading"}
+                    <span class="loading loading-spinner loading-xs"></span> Downloading...
+                  {:else}
+                    {i18n.t("downloadFull")}
+                  {/if}
+                </button>
+              </div>
+            </div>
+          </div>
+        {/if}
+      </div>
+    {/if}
+
+    <!-- Other URL Tab Input -->
+    {#if appState.activeTab === "other"}
+      <div class="w-full max-w-2xl mx-auto space-y-6">
+        <div class="join w-full">
+          <input
+            type="text"
+            placeholder={i18n.t("urlPlaceholder")}
+            bind:value={appState.youtubeUrl}
+            class="input input-bordered join-item w-full"
+            dir="ltr"
+          />
+          <button
+            class="btn btn-accent join-item font-bold"
+            onclick={handleShowVideo}
+          >
+            {i18n.t("display")}
+          </button>
+        </div>
+
+        <div class="alert alert-info text-sm">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            class="stroke-current shrink-0 w-6 h-6"
+            ><path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            ></path></svg
+          >
+          <span
+            >{i18n.lang === "ar"
+              ? "يدعم أكثر من 1000 موقع: Twitter, Instagram, Vimeo, Dailymotion..."
+              : "Supports 1000+ sites: Twitter, Instagram, Vimeo, Dailymotion..."}</span
+          >
+        </div>
+
+        {#if appState.youtubeMetadata}
+          <div
+            class="card card-side bg-base-100 shadow-sm border border-base-300 overflow-hidden"
+          >
+            <figure class="w-1/3">
+              <img
+                src={appState.youtubeMetadata.thumbnail}
+                alt="Thumbnail"
+                class="h-full w-full object-cover"
+              />
+            </figure>
+            <div class="card-body p-4 w-2/3">
+              <h3 class="card-title text-base" dir="auto">
+                {appState.youtubeMetadata.title}
+              </h3>
+              <p class="text-sm opacity-70">
+                {i18n.t("duration")}
+                {formatTime(appState.youtubeMetadata.duration)}
               </p>
               <div class="card-actions justify-end mt-2">
                 <button

@@ -8,6 +8,7 @@
     import Controls from "./Controls.svelte";
     import Modal from "./Modal.svelte";
     import { appState } from "./lib/state.svelte.js";
+    import { i18n } from "./stores/i18n.svelte.js";
 
     let showSuccessModal = $state(false);
     let createdFiles = $state([]);
@@ -116,10 +117,14 @@
     <!-- Success Modal -->
     <Modal
         isOpen={showSuccessModal}
-        title="تم بنجاح!"
+        title={i18n.lang === "ar" ? "تم بنجاح!" : "Success!"}
         onClose={() => (showSuccessModal = false)}
     >
-        <p>تم إنشاء المقاطع التالية:</p>
+        <p>
+            {i18n.lang === "ar"
+                ? "تم إنشاء المقاطع التالية:"
+                : "The following clips were created:"}
+        </p>
         <ul class="list-none mt-4 space-y-2">
             {#each createdFiles as file}
                 <li
@@ -129,7 +134,9 @@
                         >{file}</span
                     >
                     <button class="btn btn-xs btn-outline" onclick={openFolder}
-                        >فتح المجلد</button
+                        >{i18n.lang === "ar"
+                            ? "فتح المجلد"
+                            : "Open Folder"}</button
                     >
                 </li>
             {/each}
@@ -139,54 +146,75 @@
     <!-- About Modal -->
     <Modal
         isOpen={appState.showAboutModal}
-        title="حول البرنامج"
+        title={i18n.lang === "ar" ? "حول البرنامج" : "About"}
         onClose={() => (appState.showAboutModal = false)}
     >
-        <div class="space-y-4 text-right" dir="rtl">
+        <div
+            class="space-y-4"
+            dir={i18n.lang === "ar" ? "rtl" : "ltr"}
+            style={i18n.lang === "ar"
+                ? "text-align: right;"
+                : "text-align: left;"}
+        >
             <div class="flex flex-col items-center mb-4 gap-2">
                 <img
-                    src="logo.webp"
+                    src={i18n.lang === "ar" ? "logo-Ar.webp" : "logo-EN.webp"}
                     alt="Logo"
                     class="w-24 h-24 object-contain"
                 />
                 <h2 class="text-xl font-bold text-primary">
-                    منتجات أفدنا كلاود
+                    {i18n.lang === "ar"
+                        ? "منتجات أفدنا كلاود"
+                        : "AFIDNA Cloud Products"}
                 </h2>
             </div>
             <p class="text-base-content/80">
-                برنامج احترافي لتقطيع الفيديو، يهدف لتسهيل وتسريع عملية
-                المونتاج.
+                {i18n.lang === "ar"
+                    ? "برنامج احترافي لتقطيع الفيديو، يهدف لتسهيل وتسريع عملية المونتاج."
+                    : "A professional video cutting application, designed to simplify and speed up the editing process."}
             </p>
 
             <div class="border-t border-base-300 pt-4">
-                <p class="font-bold text-secondary mb-2">المطور:</p>
-                <p>صالح أيت أمقران</p>
-            </div>
-
-            <div class="border-t border-base-300 pt-4">
-                <p class="font-bold text-accent mb-2">سياق المشروع:</p>
+                <p class="font-bold text-secondary mb-2">
+                    {i18n.lang === "ar" ? "المطور:" : "Developer:"}
+                </p>
                 <p>
-                    هذا البرنامج جزء من مشروع <a
-                        href="https://afidna.cloud"
-                        target="_blank"
-                        class="link link-primary">أدوات أفدنا كلاود</a
-                    >، التابع لمنصة
-                    <a
-                        href="https://afidna.com"
-                        target="_blank"
-                        class="link link-primary">أفدنا للعلوم الشرعية</a
-                    >.
+                    {i18n.lang === "ar"
+                        ? "صالح أيت أمقران"
+                        : "Salah AIT AMOKRANE"}
                 </p>
             </div>
 
-            <div
-                class="bg-base-200 p-3 rounded-box border border-base-300 mt-2"
-            >
-                <p class="text-sm text-base-content/70">
-                    هذه النسخة خاصة بالشيخ <span class="text-primary font-bold"
-                        >أبو معاذ محمد مرابط</span
-                    >، ضمن أدوات العمل في قناته على اليوتيوب لتسهيل وتسريع قطع
-                    المقاطع المرئية والصوتية.
+            <div class="border-t border-base-300 pt-4">
+                <p class="font-bold text-accent mb-2">
+                    {i18n.lang === "ar" ? "سياق المشروع:" : "Project Context:"}
+                </p>
+                <p>
+                    {#if i18n.lang === "ar"}
+                        هذا البرنامج جزء من مشروع <a
+                            href="https://afidna.cloud"
+                            target="_blank"
+                            class="link link-primary">أدوات أفدنا كلاود</a
+                        >، التابع لمنصة
+                        <a
+                            href="https://afidna.com"
+                            target="_blank"
+                            class="link link-primary">أفدنا للعلوم الشرعية</a
+                        >.
+                    {:else}
+                        This application is part of the <a
+                            href="https://afidna.cloud"
+                            target="_blank"
+                            class="link link-primary">AFIDNA Cloud Tools</a
+                        >
+                        project, affiliated with
+                        <a
+                            href="https://afidna.com"
+                            target="_blank"
+                            class="link link-primary"
+                            >AFIDNA for Islamic Sciences</a
+                        >.
+                    {/if}
                 </p>
             </div>
 
@@ -198,7 +226,11 @@
                     target="_blank"
                     class="flex items-center gap-2 text-base-content/60 hover:text-primary transition-colors"
                 >
-                    <span>🌐 موقع أفدنا كلاود:</span>
+                    <span
+                        >🌐 {i18n.lang === "ar"
+                            ? "موقع أفدنا كلاود:"
+                            : "AFIDNA Cloud:"}</span
+                    >
                     <span dir="ltr">afidna.cloud</span>
                 </a>
                 <a
@@ -206,9 +238,19 @@
                     target="_blank"
                     class="flex items-center gap-2 text-base-content/60 hover:text-primary transition-colors"
                 >
-                    <span>🌐 منصة أفدنا للعلوم االشرعية:</span>
+                    <span
+                        >🌐 {i18n.lang === "ar"
+                            ? "منصة أفدنا للعلوم الشرعية:"
+                            : "AFIDNA Islamic Sciences:"}</span
+                    >
                     <span dir="ltr">afidna.com</span>
                 </a>
+            </div>
+
+            <div class="border-t border-base-300 pt-4 text-center">
+                <p class="text-sm opacity-70">
+                    {i18n.lang === "ar" ? "الإصدار:" : "Version:"} 2.0.0
+                </p>
             </div>
         </div>
     </Modal>
