@@ -1,4 +1,4 @@
-const { contextBridge, ipcRenderer } = require('electron')
+const { contextBridge, ipcRenderer, webUtils } = require('electron')
 
 contextBridge.exposeInMainWorld('versions', {
     node: () => process.versions.node,
@@ -17,5 +17,6 @@ contextBridge.exposeInMainWorld('electron', {
     },
     removeListener: (channel, func) => {
         ipcRenderer.removeListener(channel, func);
-    }
+    },
+    getPathForFile: (file) => webUtils.getPathForFile(file)
 })

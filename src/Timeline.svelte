@@ -150,7 +150,7 @@
                 height,
                 themeColors.highlight, // Add transparency hex approx 30% if hex.
                 // Note: CSS vars might be 'oklch(...)'. Canvas filter or globalAlpha is safer.
-                "البداية",
+                i18n.t("markerStart"),
             );
         }
 

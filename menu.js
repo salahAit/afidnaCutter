@@ -2,55 +2,57 @@ const { Menu, app, shell } = require('electron');
 const path = require('path');
 const { ipcMain } = require('electron');
 
-const createMenu = (win) => {
+const createMenu = (win, lang = 'ar') => {
+    const isArabic = lang === 'ar';
+    const t = (ar, en) => isArabic ? ar : en;
+
     const template = [
         {
-            label: 'ملف',
+            label: t('ملف', 'File'),
             submenu: [
                 {
-                    label: 'فتح المجلد',
+                    label: t('فتح مجلد المخرجات', 'Open Output Folder'),
                     accelerator: 'CmdOrCtrl+O',
                     click: async () => {
-                        // Trigger the open-folder handler logic directly or via IPC
-                        // Since we are in main process, we can just call the handler logic if we extracted it,
-                        // or invoke the handler via ipcMain (but ipcMain.handle is for renderer->main).
-                        // Best way: Re-use the handler logic or just emit an event to renderer if needed, 
-                        // BUT 'open-folder' is a main process action (shell.openPath).
-                        // So we can just do it here or call a shared function.
-                        // For simplicity, let's replicate the simple open-folder logic here or import it if possible.
-                        // However, handlers.js exports registerHandlers, not the handlers themselves easily.
-                        // Let's just use the known path logic for now.
-
                         const UPLOADS_DIR = path.join(app.getPath('userData'), 'uploads');
                         await shell.openPath(UPLOADS_DIR);
                     }
                 },
                 { type: 'separator' },
                 {
-                    label: 'خروج',
+                    label: t('خروج', 'Quit'),
                     role: 'quit'
                 }
             ]
         },
         {
-            label: 'عرض',
+            label: t('نمط', 'Style'), // Edit menu usually comes second, but skipping as per user requirement to just translate
             submenu: [
-                { label: 'إعادة تحميل', role: 'reload' },
-                { label: 'فرض إعادة التحميل', role: 'forceReload' },
-                { label: 'أدوات المطورين', role: 'toggleDevTools' },
-                { type: 'separator' },
-                { label: 'تغيير الحجم الفعلي', role: 'resetZoom' },
-                { label: 'تكبير', role: 'zoomIn' },
-                { label: 'تصغير', role: 'zoomOut' },
-                { type: 'separator' },
-                { label: 'ملء الشاشة', role: 'togglefullscreen' }
+                { label: t('قص', 'Cut'), role: 'cut' },
+                { label: t('نسخ', 'Copy'), role: 'copy' },
+                { label: t('لصق', 'Paste'), role: 'paste' },
+                { label: t('تحديد الكل', 'Select All'), role: 'selectAll' }
             ]
         },
         {
-            label: 'مساعدة',
+            label: t('عرض', 'View'),
+            submenu: [
+                { label: t('إعادة تحميل', 'Reload'), role: 'reload' },
+                { label: t('فرض إعادة التحميل', 'Force Reload'), role: 'forceReload' },
+                { label: t('أدوات المطورين', 'Toggle Developer Tools'), role: 'toggleDevTools' },
+                { type: 'separator' },
+                { label: t('تغيير الحجم الفعلي', 'Actual Size'), role: 'resetZoom' },
+                { label: t('تكبير', 'Zoom In'), role: 'zoomIn' },
+                { label: t('تصغير', 'Zoom Out'), role: 'zoomOut' },
+                { type: 'separator' },
+                { label: t('ملء الشاشة', 'Toggle Fullscreen'), role: 'togglefullscreen' }
+            ]
+        },
+        {
+            label: t('مساعدة', 'Help'),
             submenu: [
                 {
-                    label: 'حول البرنامج',
+                    label: t('حول البرنامج', 'About'),
                     click: () => {
                         win.webContents.send('open-about');
                     }

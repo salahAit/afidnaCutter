@@ -339,6 +339,10 @@ const handlers = {
                     reject(new Error('Failed to parse yt-dlp output'));
                 }
             });
+
+            ytdlp.on('error', (err) => {
+                reject(new Error('Failed to start yt-dlp: ' + err.message));
+            });
         });
     },
 
@@ -429,6 +433,10 @@ const handlers = {
                     session_id: sessionId
                 });
             });
+
+            ytdlp.on('error', (err) => {
+                reject(new Error('Failed to start yt-dlp: ' + err.message));
+            });
         });
     },
 
@@ -486,6 +494,10 @@ const handlers = {
                     } else {
                         resolve();
                     }
+                });
+
+                ytdlp.on('error', (err) => {
+                    reject(new Error('Failed to start yt-dlp: ' + err.message));
                 });
             });
 

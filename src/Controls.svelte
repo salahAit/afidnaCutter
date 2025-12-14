@@ -202,14 +202,14 @@
         <!-- Mark Buttons (Join) -->
         <div class="join shadow-sm">
             <button
-                class="join-item btn btn-md btn-accent text-white"
+                class="join-item btn btn-md btn-accent"
                 onclick={markStart}
                 disabled={!appState.videoSrc && !appState.youtubeMetadata}
             >
                 [I] {i18n.t("start")}
             </button>
             <button
-                class="join-item btn btn-md btn-accent text-white"
+                class="join-item btn btn-md btn-accent"
                 disabled={appState.currentStart === null}
                 onclick={markEnd}
             >
@@ -217,7 +217,7 @@
             </button>
             {#if appState.currentStart !== null}
                 <button
-                    class="join-item btn btn-md btn-error text-white"
+                    class="join-item btn btn-md btn-error"
                     onclick={cancelStart}
                     title={i18n.t("cancelSelection")}
                 >

@@ -1,7 +1,7 @@
 <script>
   import { appState } from "./lib/state.svelte.js";
   import { i18n } from "./stores/i18n.svelte.js";
-  import logo from "../cutter-logo-64.webp";
+  import logo from "../logo-Ar.webp";
 
   let aboutModal;
   let guideModal;
@@ -14,8 +14,9 @@
     appState.theme = theme;
   }
 
-  function setLanguage(lang) {
+  async function setLanguage(lang) {
     i18n.lang = lang;
+    await window.electron.invoke("set-language", lang);
   }
 
   function openAbout() {
@@ -70,7 +71,6 @@
         </svg>
       </div>
       <ul
-        tabindex="0"
         class="menu menu-sm dropdown-content bg-base-200 rounded-box z-[100] mt-3 w-52 p-2 shadow-lg border border-base-300"
       >
         <li>
@@ -206,7 +206,6 @@
         </svg>
       </div>
       <ul
-        tabindex="0"
         class="menu dropdown-content bg-base-200 rounded-box z-[100] mt-3 w-48 p-2 shadow-lg border border-base-300"
       >
         <li>
@@ -263,7 +262,6 @@
         </svg>
       </div>
       <ul
-        tabindex="0"
         class="menu dropdown-content bg-base-200 rounded-box z-[100] mt-3 w-40 p-2 shadow-lg border border-base-300"
       >
         <li>
@@ -293,16 +291,14 @@
       {i18n.t("appTitleLong")}
     </h3>
     <p class="py-4">
-      {i18n.lang === "ar"
-        ? "برنامج احترافي لقص وتحرير مقاطع الفيديو. يدعم الملفات المحلية وروابط يوتيوب."
-        : "A professional video cutting and editing application. Supports local files and YouTube links."}
+      {i18n.t("aboutDesc")}
     </p>
     <p class="text-sm opacity-70">
-      {i18n.lang === "ar" ? "الإصدار: 2.0.0" : "Version: 2.0.0"}
+      {i18n.t("version")}: 2.0.0
     </p>
     <div class="modal-action">
       <form method="dialog">
-        <button class="btn">{i18n.lang === "ar" ? "إغلاق" : "Close"}</button>
+        <button class="btn">{i18n.t("close")}</button>
       </form>
     </div>
   </div>
@@ -332,53 +328,30 @@
       {i18n.t("guide")}
     </h3>
     <div class="py-4 space-y-3">
-      {#if i18n.lang === "ar"}
-        <div class="flex gap-2">
-          <span class="text-primary font-bold">1.</span><span
-            >اختر ملف فيديو محلي أو أدخل رابط يوتيوب.</span
-          >
-        </div>
-        <div class="flex gap-2">
-          <span class="text-primary font-bold">2.</span><span
-            >اضغط على الفيديو أو اسحب على شريط الوقت لتحديد مقطع.</span
-          >
-        </div>
-        <div class="flex gap-2">
-          <span class="text-primary font-bold">3.</span><span
-            >استخدم أزرار "بداية" و "نهاية" لتحديد نقاط القص بدقة.</span
-          >
-        </div>
-        <div class="flex gap-2">
-          <span class="text-primary font-bold">4.</span><span
-            >اضغط "قص وتصدير" لحفظ المقاطع المحددة.</span
-          >
-        </div>
-      {:else}
-        <div class="flex gap-2">
-          <span class="text-primary font-bold">1.</span><span
-            >Select a local video file or enter a YouTube URL.</span
-          >
-        </div>
-        <div class="flex gap-2">
-          <span class="text-primary font-bold">2.</span><span
-            >Click on the video or drag on the timeline to select a segment.</span
-          >
-        </div>
-        <div class="flex gap-2">
-          <span class="text-primary font-bold">3.</span><span
-            >Use "Start" and "End" buttons to precisely mark cut points.</span
-          >
-        </div>
-        <div class="flex gap-2">
-          <span class="text-primary font-bold">4.</span><span
-            >Press "Trim & Export" to save the selected segments.</span
-          >
-        </div>
-      {/if}
+      <div class="flex gap-2">
+        <span class="text-primary font-bold">1.</span><span
+          >{i18n.t("guideStep1")}</span
+        >
+      </div>
+      <div class="flex gap-2">
+        <span class="text-primary font-bold">2.</span><span
+          >{i18n.t("guideStep2")}</span
+        >
+      </div>
+      <div class="flex gap-2">
+        <span class="text-primary font-bold">3.</span><span
+          >{i18n.t("guideStep3")}</span
+        >
+      </div>
+      <div class="flex gap-2">
+        <span class="text-primary font-bold">4.</span><span
+          >{i18n.t("guideStep4")}</span
+        >
+      </div>
     </div>
     <div class="modal-action">
       <form method="dialog">
-        <button class="btn">{i18n.lang === "ar" ? "إغلاق" : "Close"}</button>
+        <button class="btn">{i18n.t("close")}</button>
       </form>
     </div>
   </div>

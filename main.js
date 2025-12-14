@@ -1,6 +1,7 @@
 const { app, BrowserWindow, powerSaveBlocker, Menu } = require('electron/main')
 const path = require('node:path')
 const { registerHandlers, registerProtocol } = require('./handlers');
+const { createMenu } = require('./menu');
 
 registerHandlers();
 
@@ -18,14 +19,26 @@ const createWindow = () => {
         icon: path.join(__dirname, 'resources/icon.png')
     })
 
+    // Register language handler
+    let currentLang = 'ar'; // Default
+    const { ipcMain } = require('electron');
+
+    ipcMain.handle('set-language', (event, lang) => {
+        currentLang = lang;
+        createMenu(win, currentLang);
+    });
+
     // Enable right-click context menu
     win.webContents.on('context-menu', (event, params) => {
+        const isArabic = currentLang === 'ar';
+        const t = (ar, en) => isArabic ? ar : en;
+
         const contextMenu = Menu.buildFromTemplate([
-            { label: 'قص', role: 'cut' },
-            { label: 'نسخ', role: 'copy' },
-            { label: 'لصق', role: 'paste' },
+            { label: t('قص', 'Cut'), role: 'cut' },
+            { label: t('نسخ', 'Copy'), role: 'copy' },
+            { label: t('لصق', 'Paste'), role: 'paste' },
             { type: 'separator' },
-            { label: 'تحديد الكل', role: 'selectAll' }
+            { label: t('تحديد الكل', 'Select All'), role: 'selectAll' }
         ]);
         contextMenu.popup(win);
     });
@@ -67,8 +80,9 @@ app.whenReady().then(() => {
 
     registerProtocol(require('electron').protocol);
     const win = createWindow()
-    const { createMenu } = require('./menu');
-    createMenu(win);
+
+    // Initial menu creation
+    createMenu(win, 'ar');
 
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {

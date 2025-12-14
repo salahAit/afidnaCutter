@@ -208,7 +208,7 @@
               </p>
               <div class="card-actions justify-end mt-2">
                 <button
-                  class="btn btn-success btn-sm text-white"
+                  class="btn btn-success btn-sm"
                   disabled={appState.downloadStatus.status === "downloading"}
                   onclick={() => (showDownloadModal = true)}
                 >
@@ -294,7 +294,7 @@
       <div class="modal-action">
         <form method="dialog" class="flex gap-2 w-full">
           <button
-            class="btn btn-success flex-1 text-white"
+            class="btn btn-success flex-1"
             type="button"
             onclick={startDownload}>{i18n.t("download")}</button
           >

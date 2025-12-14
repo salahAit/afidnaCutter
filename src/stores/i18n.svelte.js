@@ -56,6 +56,63 @@ export const translations = {
         cutAll: "قص الكل",
         browseYoutube: "افتح يوتوب للنسخ",
         browseYoutubeSub: "افتح الموقع للبحث عن فيديو",
+        // Navbar / Global
+        guide: "دليل الاستخدام",
+        guideTitle: "دليل الاستخدام",
+        guideStep1: "اختر ملف فيديو محلي أو أدخل رابط يوتوب.",
+        guideStep2: "اضغط على الفيديو أو اسحب على شريط الوقت لتحديد مقطع.",
+        guideStep3: "استخدم أزرار 'بداية' و 'نهاية' لتحديد نقاط القص بدقة.",
+        guideStep4: "اضغط 'قص وتصدير' لحفظ المقاطع المحددة.",
+        aboutTitle: "حول البرنامج",
+        aboutDesc: "برنامج احترافي لقص وتحرير مقاطع الفيديو. يدعم الملفات المحلية وروابط يوتوب.",
+        version: "الإصدار",
+        close: "إغلاق",
+
+        // Menu - File
+        fileMenu: "ملف",
+        openFolder: "فتح مجلد المخرجات",
+        quit: "خروج",
+
+        // Menu - View
+        viewMenu: "عرض",
+        reload: "إعادة تحميل",
+        forceReload: "فرض إعادة التحميل",
+        toggleDevTools: "أدوات المطورين",
+        resetZoom: "تغيير الحجم الفعلي",
+        zoomIn: "تكبير",
+        zoomOut: "تصغير",
+        toggleFullscreen: "ملء الشاشة",
+
+        // Menu - Help
+        helpMenu: "مساعدة",
+        aboutMenu: "حول البرنامج",
+
+        // Context Menu
+        cut: "قص",
+        copy: "نسخ",
+        paste: "لصق",
+        selectAll: "تحديد الكل",
+
+        // Errors & Warnings
+        startTimeBeforeEndTimeError: "وقت البداية يجب أن يكون قبل وقت النهاية",
+        endTimeAfterStartTimeError: "وقت النهاية يجب أن يكون بعد وقت البداية",
+        qualityUnavailable: "الجودة غير متوفرة",
+        availableQualities: "الجودات المتوفرة",
+        cutFailed: "فشلت عملية القص",
+        failedToSelectFile: "فشل تحديد الملف",
+        failedToProcessFile: "فشل معالجة الملف",
+        videoOwnerRestricted: "مالك الفيديو قيد التشغيل (خطأ %s)",
+        unknown: "غير معروف",
+
+        // Timeline
+        markerStart: "البداية",
+
+        // Player
+        youtubeEmptyState: "أدخل رابط يوتوب في الأعلى واضغط عرض",
+        closeVideo: "إغلاق الفيديو",
+        play: "تشغيل",
+        delete: "حذف",
+        delete: "حذف",
     },
     en: {
         appTitleShort: "AFIDNA CUTTER",
@@ -114,6 +171,62 @@ export const translations = {
         cutAll: "Cut All",
         browseYoutube: "Open YouTube to Copy",
         browseYoutubeSub: "Open site to search for video",
+        // Navbar / Global
+        guide: "Guide",
+        guideTitle: "User Guide",
+        guideStep1: "Select a local video file or enter a YouTube URL.",
+        guideStep2: "Click on the video or drag on the timeline to select a segment.",
+        guideStep3: "Use 'Start' and 'End' buttons to precisely mark cut points.",
+        guideStep4: "Press 'Trim & Export' to save the selected segments.",
+        aboutTitle: "About",
+        aboutDesc: "A professional video cutting and editing application. Supports local files and YouTube links.",
+        version: "Version",
+        close: "Close",
+
+        // Menu - File
+        fileMenu: "File",
+        openFolder: "Open Output Folder",
+        quit: "Quit",
+
+        // Menu - View
+        viewMenu: "View",
+        reload: "Reload",
+        forceReload: "Force Reload",
+        toggleDevTools: "Toggle Developer Tools",
+        resetZoom: "Actual Size",
+        zoomIn: "Zoom In",
+        zoomOut: "Zoom Out",
+        toggleFullscreen: "Toggle Fullscreen",
+
+        // Menu - Help
+        helpMenu: "Help",
+        aboutMenu: "About",
+
+        // Context Menu
+        cut: "Cut",
+        copy: "Copy",
+        paste: "Paste",
+        selectAll: "Select All",
+
+        // Errors & Warnings
+        startTimeBeforeEndTimeError: "Start time must be before end time",
+        endTimeAfterStartTimeError: "End time must be after start time",
+        qualityUnavailable: "Quality unavailable",
+        availableQualities: "Available qualities",
+        cutFailed: "Cut failed",
+        failedToSelectFile: "Failed to select file",
+        failedToProcessFile: "Failed to process file",
+        videoOwnerRestricted: "Video owner restricted playback (Error %s)",
+        unknown: "Unknown",
+
+        // Timeline
+        markerStart: "Start",
+
+        // Player
+        youtubeEmptyState: "Enter a YouTube URL above and click Display",
+        closeVideo: "Close Video",
+        play: "Play",
+        delete: "Delete",
     }
 };
 

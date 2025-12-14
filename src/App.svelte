@@ -68,11 +68,22 @@
             });
         }
 
+        // Prevent Electron from navigating to dropped files (global)
+        document.addEventListener("dragover", preventDrag);
+        document.addEventListener("drop", preventDrag);
+
         return () => {
             window.removeEventListener("keydown", handleKeydown);
             window.removeEventListener("cut-complete", handleCutComplete);
+            document.removeEventListener("dragover", preventDrag);
+            document.removeEventListener("drop", preventDrag);
         };
     });
+
+    // Prevent Electron from navigating to dropped files
+    function preventDrag(e) {
+        e.preventDefault();
+    }
 
     async function openFolder() {
         await window.electron.invoke("open-folder", appState.sessionId);

@@ -3,7 +3,7 @@
   import { i18n } from "./stores/i18n.svelte.js";
   import { onMount } from "svelte";
 
-  let videoElement;
+  let videoElement = $state(null);
   let youtubeContainer = $state(null);
   let hoverTime = $state(0);
   let tooltipLeft = $state(0);
@@ -92,13 +92,7 @@
                 event.data === 101 ||
                 event.data === 153
               ) {
-                alert(
-                  i18n.t("error") +
-                    ": " +
-                    "Video owner restricted playback (Error " +
-                    event.data +
-                    ")",
-                );
+                alert(i18n.t("videoOwnerRestricted").replace("%s", event.data));
               }
             },
           },
@@ -212,11 +206,17 @@
 
   function onDrop(e) {
     e.preventDefault();
+    e.stopPropagation();
     isDragging = false;
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const file = e.dataTransfer.files[0];
-      const filePath = file.path;
-      if (filePath) processFile(filePath);
+      // Use Electron's webUtils API to get file path (required with contextIsolation)
+      const filePath = window.electron.getPathForFile(file);
+      if (filePath) {
+        processFile(filePath);
+      } else {
+        alert(i18n.t("failedToProcessFile"));
+      }
     }
   }
 
@@ -241,7 +241,7 @@
     <button
       onclick={handleClose}
       class="absolute top-2 right-2 z-50 btn btn-circle btn-sm btn-error shadow-md opacity-80 hover:opacity-100"
-      title="Close Video"
+      title={i18n.t("closeVideo")}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -326,8 +326,7 @@
           <div class="flex flex-col items-center gap-4">
             <span class="loading loading-spinner loading-lg text-primary"
             ></span>
-            <span class="text-xl text-base-content/70"
-              >جاري تحميل الفيديو...</span
+            <span class="text-xl text-base-content/70">{i18n.t("loading")}</span
             >
           </div>
         </div>
@@ -392,9 +391,7 @@
   {:else}
     <!-- Fallback / YouTube Empty State -->
     <div class="text-base-content/50 italic">
-      {i18n.lang === "ar"
-        ? "أدخل رابط يوتيوب في الأعلى واضغط عرض"
-        : "Enter a YouTube URL above and click Display"}
+      {i18n.t("youtubeEmptyState")}
     </div>
   {/if}
 </div>

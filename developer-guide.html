@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>دليل المطورين - Afidna Cutter</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent-primary: #7c3aed;
+            --accent-secondary: #10b981;
+            --accent-tertiary: #ec4899;
+            --accent-warning: #f59e0b;
+            --accent-info: #3b82f6;
+            --border-color: #475569;
+            --code-bg: #0d1117;
+            --gradient-1: linear-gradient(135deg, #7c3aed 0%, #ec4899 100%);
+            --gradient-2: linear-gradient(135deg, #10b981 0%, #3b82f6 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.8;
+            min-height: 100vh;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: var(--gradient-1);
+            padding: 4rem 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            opacity: 0.5;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .hero .subtitle {
+            font-size: 1.3rem;
+            opacity: 0.9;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero .version-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+            font-size: 0.9rem;
+        }
+
+        /* Navigation */
+        .nav-container {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            gap: 0.5rem;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .nav::-webkit-scrollbar {
+            display: none;
+        }
+
+        .nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 1rem 1.2rem;
+            white-space: nowrap;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+
+        .nav a:hover {
+            color: var(--text-primary);
+            background: var(--bg-tertiary);
+            border-bottom-color: var(--accent-primary);
+        }
+
+        /* Main Content */
+        .main-container {
+            display: flex;
+            max-width: 1400px;
+            margin: 0 auto;
+            min-height: calc(100vh - 200px);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: var(--bg-secondary);
+            border-left: 1px solid var(--border-color);
+            padding: 2rem 1rem;
+            position: sticky;
+            top: 60px;
+            height: calc(100vh - 60px);
+            overflow-y: auto;
+            display: none;
+        }
+
+        @media (min-width: 1024px) {
+            .sidebar {
+                display: block;
+            }
+        }
+
+        .sidebar h3 {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+            padding: 0 0.5rem;
+        }
+
+        .sidebar-nav a {
+            display: block;
+            padding: 0.6rem 1rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            border-radius: 8px;
+            margin-bottom: 0.3rem;
+            transition: all 0.2s;
+        }
+
+        .sidebar-nav a:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        /* Content */
+        .content {
+            flex: 1;
+            padding: 3rem 2rem;
+            max-width: 900px;
+        }
+
+        /* Sections */
+        .section {
+            margin-bottom: 4rem;
+            scroll-margin-top: 80px;
+        }
+
+        .section h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--accent-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .section h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin: 2rem 0 1rem;
+            color: var(--accent-secondary);
+        }
+
+        .section h4 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 1.5rem 0 0.75rem;
+            color: var(--accent-tertiary);
+        }
+
+        .section p {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        /* Tables */
+        .table-container {
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th {
+            background: var(--bg-tertiary);
+            padding: 1rem;
+            text-align: right;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        td {
+            padding: 1rem;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        tr:hover td {
+            background: var(--bg-secondary);
+        }
+
+        /* Code Blocks */
+        pre {
+            background: var(--code-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            position: relative;
+        }
+
+        pre::before {
+            content: attr(data-lang);
+            position: absolute;
+            top: 0.5rem;
+            left: 0.75rem;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+
+        :not(pre) > code {
+            background: var(--bg-tertiary);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            color: var(--accent-tertiary);
+        }
+
+        /* Cards */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: all 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent-primary);
+            box-shadow: 0 10px 40px rgba(124, 58, 237, 0.15);
+        }
+
+        .card-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .card h4 {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .card p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        /* File Tree */
+        .file-tree {
+            background: var(--code-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            direction: ltr;
+            text-align: left;
+            overflow-x: auto;
+        }
+
+        .file-tree .folder {
+            color: var(--accent-info);
+        }
+
+        .file-tree .file {
+            color: var(--text-secondary);
+        }
+
+        .file-tree .comment {
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-primary {
+            background: var(--accent-primary);
+            color: white;
+        }
+
+        .badge-success {
+            background: var(--accent-secondary);
+            color: white;
+        }
+
+        .badge-warning {
+            background: var(--accent-warning);
+            color: black;
+        }
+
+        /* Alerts */
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            margin: 1.5rem 0;
+            border-right: 4px solid;
+        }
+
+        .alert-info {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: var(--accent-info);
+        }
+
+        .alert-warning {
+            background: rgba(245, 158, 11, 0.1);
+            border-color: var(--accent-warning);
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: var(--accent-secondary);
+        }
+
+        /* Lists */
+        ul, ol {
+            padding-right: 1.5rem;
+            margin: 1rem 0;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+        }
+
+        /* Diagram Container */
+        .diagram {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+            text-align: center;
+            direction: ltr;
+        }
+
+        .diagram pre {
+            background: transparent;
+            border: none;
+            padding: 0;
+            margin: 0;
+            white-space: pre;
+            font-size: 0.8rem;
+            line-height: 1.4;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+
+        .footer p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .footer a {
+            color: var(--accent-primary);
+            text-decoration: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .hero .subtitle {
+                font-size: 1rem;
+            }
+
+            .content {
+                padding: 2rem 1rem;
+            }
+
+            .section h2 {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        /* Anchor Links */
+        .anchor-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.8em;
+            margin-right: 0.5rem;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        h2:hover .anchor-link,
+        h3:hover .anchor-link {
+            opacity: 1;
+        }
+
+        /* Command Box */
+        .command-box {
+            background: var(--code-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin: 0.5rem 0;
+            direction: ltr;
+        }
+
+        .command-box code {
+            flex: 1;
+        }
+
+        .command-box .prefix {
+            color: var(--accent-secondary);
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <header class="hero">
+        <div class="hero-content">
+            <h1>🎬 دليل المطورين الشامل</h1>
+            <p class="subtitle">Afidna Cutter - Developer Comprehensive Guide</p>
+            <span class="version-badge">📌 الإصدار 2.0.0 | تحديث: 2025-12-10</span>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="nav-container">
+        <div class="nav">
+            <a href="#overview">نظرة عامة</a>
+            <a href="#tech-stack">التكنولوجيات</a>
+            <a href="#structure">هيكل المشروع</a>
+            <a href="#architecture">الهندسة المعمارية</a>
+            <a href="#electron">Electron</a>
+            <a href="#svelte">Svelte 5</a>
+            <a href="#state">إدارة الحالة</a>
+            <a href="#i18n">الترجمة</a>
+            <a href="#theming">السمات</a>
+            <a href="#video">معالجة الفيديو</a>
+            <a href="#youtube">YouTube</a>
+            <a href="#build">البناء</a>
+            <a href="#dev">التطوير</a>
+            <a href="#practices">الممارسات</a>
+            <a href="#troubleshooting">الأخطاء</a>
+        </div>
+    </nav>
+
+    <div class="main-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <h3>المحتويات</h3>
+            <nav class="sidebar-nav">
+                <a href="#overview">1. نظرة عامة</a>
+                <a href="#tech-stack">2. التكنولوجيات</a>
+                <a href="#structure">3. هيكل المشروع</a>
+                <a href="#architecture">4. الهندسة المعمارية</a>
+                <a href="#electron">5. Electron</a>
+                <a href="#svelte">6. Svelte 5</a>
+                <a href="#state">7. إدارة الحالة</a>
+                <a href="#i18n">8. الترجمة</a>
+                <a href="#theming">9. السمات</a>
+                <a href="#video">10. معالجة الفيديو</a>
+                <a href="#youtube">11. YouTube</a>
+                <a href="#build">12. البناء والتوزيع</a>
+                <a href="#dev">13. بيئة التطوير</a>
+                <a href="#practices">14. الممارسات</a>
+                <a href="#troubleshooting">15. الأخطاء</a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="content">
+
+            <!-- Section 1: Overview -->
+            <section id="overview" class="section">
+                <h2>📋 1. نظرة عامة على المشروع</h2>
+                
+                <p><strong>Afidna Cutter</strong> هو تطبيق سطح مكتب احترافي لتقطيع الفيديو والصوت، مبني بتقنيات حديثة.</p>
+
+                <h3>الميزات الرئيسية</h3>
+                <div class="card-grid">
+                    <div class="card">
+                        <div class="card-icon">🎬</div>
+                        <h4>تقطيع الفيديو</h4>
+                        <p>قص دقيق باستخدام FFmpeg مع الحفاظ على الجودة</p>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon">📺</div>
+                        <h4>دعم YouTube</h4>
+                        <p>تحليل وتحميل وتقطيع فيديوهات YouTube مباشرة</p>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon">⚡</div>
+                        <h4>Timeline تفاعلي</h4>
+                        <p>رسم Canvas مع دعم السحب والإفلات</p>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon">🌍</div>
+                        <h4>ثنائي اللغة</h4>
+                        <p>عربي وإنجليزي مع دعم RTL كامل</p>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon">🎨</div>
+                        <h4>سمات متعددة</h4>
+                        <p>3 سمات مدمجة (Midnight, Ocean, Sunset)</p>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon">🖥️</div>
+                        <h4>متعدد المنصات</h4>
+                        <p>يدعم Linux و Windows</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 2: Tech Stack -->
+            <section id="tech-stack" class="section">
+                <h2>🛠️ 2. التكنولوجيات المستخدمة</h2>
+
+                <h3>Frontend (واجهة المستخدم)</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>التقنية</th>
+                                <th>الإصدار</th>
+                                <th>الغرض</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Svelte</strong></td>
+                                <td><span class="badge badge-primary">^5.45.3</span></td>
+                                <td>إطار عمل الواجهة (Runes API)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Vite</strong></td>
+                                <td><span class="badge badge-primary">^7.2.6</span></td>
+                                <td>أداة البناء والتطوير</td>
+                            </tr>
+                            <tr>
+                                <td><strong>TailwindCSS</strong></td>
+                                <td><span class="badge badge-primary">^4.1.17</span></td>
+                                <td>إطار CSS utility-first</td>
+                            </tr>
+                            <tr>
+                                <td><strong>DaisyUI</strong></td>
+                                <td><span class="badge badge-primary">^5.5.5</span></td>
+                                <td>مكتبة مكونات UI</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>Backend (الخلفية)</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>التقنية</th>
+                                <th>الإصدار</th>
+                                <th>الغرض</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Electron</strong></td>
+                                <td><span class="badge badge-success">^39.2.4</span></td>
+                                <td>تطبيق سطح المكتب</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Node.js</strong></td>
+                                <td><span class="badge badge-success">18+</span></td>
+                                <td>بيئة التشغيل</td>
+                            </tr>
+                            <tr>
+                                <td><strong>FFmpeg</strong></td>
+                                <td>System/Bundled</td>
+                                <td>معالجة الفيديو</td>
+                            </tr>
+                            <tr>
+                                <td><strong>yt-dlp</strong></td>
+                                <td>System</td>
+                                <td>تحميل YouTube</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>التبعيات الخارجية</h3>
+                <div class="command-box">
+                    <span class="prefix">$</span>
+                    <code>sudo apt install ffmpeg yt-dlp  # Linux</code>
+                </div>
+                <div class="alert alert-info">
+                    <strong>ملاحظة:</strong> في Windows، يتم تضمين FFmpeg في <code>resources/bin/win/</code>
+                </div>
+            </section>
+
+            <!-- Section 3: Structure -->
+            <section id="structure" class="section">
+                <h2>📁 3. هيكل المشروع</h2>
+
+                <div class="file-tree">
+<pre>afidnaCutter/
+├── <span class="folder">📁 src/</span>                          <span class="comment"># كود Svelte (Frontend)</span>
+│   ├── <span class="file">📄 main.js</span>                   <span class="comment"># نقطة دخول Svelte</span>
+│   ├── <span class="file">📄 App.svelte</span>                <span class="comment"># المكون الرئيسي</span>
+│   ├── <span class="file">📄 app.css</span>                   <span class="comment"># الأنماط العامة + السمات</span>
+│   ├── <span class="folder">📁 lib/</span>
+│   │   └── <span class="file">📄 state.svelte.js</span>       <span class="comment"># إدارة الحالة ($state)</span>
+│   ├── <span class="folder">📁 stores/</span>
+│   │   └── <span class="file">📄 i18n.svelte.js</span>        <span class="comment"># نظام الترجمة</span>
+│   ├── <span class="file">📄 Navbar.svelte</span>             <span class="comment"># شريط التنقل</span>
+│   ├── <span class="file">📄 InputSection.svelte</span>       <span class="comment"># إدخال الملف/YouTube</span>
+│   ├── <span class="file">📄 VideoPlayer.svelte</span>        <span class="comment"># مشغل الفيديو</span>
+│   ├── <span class="file">📄 Timeline.svelte</span>           <span class="comment"># الخط الزمني (Canvas)</span>
+│   ├── <span class="file">📄 Controls.svelte</span>           <span class="comment"># أزرار التحكم</span>
+│   ├── <span class="file">📄 Sidebar.svelte</span>            <span class="comment"># الشريط الجانبي</span>
+│   └── <span class="file">📄 Modal.svelte</span>              <span class="comment"># النافذة المنبثقة</span>
+│
+├── <span class="folder">📁 Electron Backend</span>
+│   ├── <span class="file">📄 main.js</span>                   <span class="comment"># العملية الرئيسية</span>
+│   ├── <span class="file">📄 preload.js</span>                <span class="comment"># جسر Main ↔ Renderer</span>
+│   ├── <span class="file">📄 handlers.js</span>               <span class="comment"># معالجات IPC</span>
+│   └── <span class="file">📄 menu.js</span>                   <span class="comment"># قائمة التطبيق</span>
+│
+├── <span class="folder">📁 resources/</span>                    <span class="comment"># موارد التطبيق</span>
+│   └── <span class="folder">📁 bin/win/</span>                  <span class="comment"># FFmpeg لـ Windows</span>
+│
+├── <span class="folder">📁 dist/</span>                         <span class="comment"># مخرجات Vite build</span>
+├── <span class="folder">📁 release/</span>                      <span class="comment"># ملفات التوزيع</span>
+│
+├── <span class="file">📄 package.json</span>
+├── <span class="file">📄 vite.config.mjs</span>
+└── <span class="file">📄 index.html</span></pre>
+                </div>
+            </section>
+
+            <!-- Section 4: Architecture -->
+            <section id="architecture" class="section">
+                <h2>🏗️ 4. الهندسة المعمارية</h2>
+
+                <h3>نمط الاتصال</h3>
+                <div class="diagram">
+<pre>
+┌─────────────────────┐      IPC invoke       ┌─────────────────────┐
+│                     │ ────────────────────► │                     │
+│   Renderer Process  │                       │    Main Process     │
+│     (Svelte 5)      │ ◄──────────────────── │     (Node.js)       │
+│                     │      IPC response     │                     │
+└─────────────────────┘                       └─────────────────────┘
+          │                                             │
+          │                                             ▼
+          │                                   ┌─────────────────────┐
+          │                                   │   FFmpeg / yt-dlp   │
+          │                                   │   (External Tools)  │
+          │                                   └─────────────────────┘
+          ▼
+┌─────────────────────┐
+│      $state()       │
+│   Reactive State    │
+│   (state.svelte.js) │
+└─────────────────────┘
+</pre>
+                </div>
+
+                <h3>تدفق البيانات</h3>
+                <div class="alert alert-success">
+                    <strong>الأهم:</strong> جميع العمليات الثقيلة (قص الفيديو، تحميل YouTube) تتم في Main Process لتجنب تجميد الواجهة.
+                </div>
+            </section>
+
+            <!-- Section 5: Electron -->
+            <section id="electron" class="section">
+                <h2>⚡ 5. عملية Electron الرئيسية</h2>
+
+                <h3>main.js - نقطة الدخول</h3>
+                <pre data-lang="JavaScript"><code>const { app, BrowserWindow, powerSaveBlocker } = require('electron/main');
+
+// منع التعليق عند التصغير
+powerSaveBlocker.start('prevent-app-suspension');
+
+// حجب طلبات الإعلانات
+session.defaultSession.webRequest.onBeforeRequest(adFilter, (details, callback) => {
+    callback({ cancel: true });
+});</code></pre>
+
+                <h3>handlers.js - معالجات IPC</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>المعالج</th>
+                                <th>الوظيفة</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><code>upload-video</code></td><td>رفع ملف فيديو محلي</td></tr>
+                            <tr><td><code>cut-video</code></td><td>قص مقاطع من فيديو محلي</td></tr>
+                            <tr><td><code>select-file</code></td><td>فتح مربع حوار اختيار ملف</td></tr>
+                            <tr><td><code>analyze-youtube</code></td><td>تحليل رابط YouTube</td></tr>
+                            <tr><td><code>download-full-youtube</code></td><td>تحميل فيديو YouTube كامل</td></tr>
+                            <tr><td><code>cut-youtube</code></td><td>تحميل وقص مقاطع من YouTube</td></tr>
+                            <tr><td><code>open-folder</code></td><td>فتح مجلد المخرجات</td></tr>
+                            <tr><td><code>open-youtube-window</code></td><td>فتح نافذة YouTube مدمجة</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>preload.js - Context Bridge</h3>
+                <pre data-lang="JavaScript"><code>contextBridge.exposeInMainWorld('electron', {
+    invoke: (channel, data) => ipcRenderer.invoke(channel, data),
+    on: (channel, func) => {
+        const validChannels = ['open-about', 'download-progress'];
+        if (validChannels.includes(channel)) {
+            ipcRenderer.on(channel, (event, ...args) => func(...args));
+        }
+    }
+});</code></pre>
+            </section>
+
+            <!-- Section 6: Svelte 5 -->
+            <section id="svelte" class="section">
+                <h2>🔥 6. واجهة Svelte 5</h2>
+
+                <h3>المكونات</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>المكون</th>
+                                <th>الملف</th>
+                                <th>الوظيفة</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><strong>App</strong></td><td>App.svelte</td><td>المكون الجذر، اختصارات لوحة المفاتيح</td></tr>
+                            <tr><td><strong>Navbar</strong></td><td>Navbar.svelte</td><td>شريط التنقل، اللغة، السمة</td></tr>
+                            <tr><td><strong>InputSection</strong></td><td>InputSection.svelte</td><td>إدخال الملف/YouTube، تبويبات</td></tr>
+                            <tr><td><strong>VideoPlayer</strong></td><td>VideoPlayer.svelte</td><td>مشغل HTML5/YouTube IFrame</td></tr>
+                            <tr><td><strong>Timeline</strong></td><td>Timeline.svelte</td><td>Canvas تفاعلي، تحديد المقاطع</td></tr>
+                            <tr><td><strong>Controls</strong></td><td>Controls.svelte</td><td>أزرار التشغيل، السرعة</td></tr>
+                            <tr><td><strong>Sidebar</strong></td><td>Sidebar.svelte</td><td>قائمة المقاطع، تحرير، قص</td></tr>
+                            <tr><td><strong>Modal</strong></td><td>Modal.svelte</td><td>نافذة منبثقة قابلة لإعادة الاستخدام</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>استخدام Svelte 5 Runes</h3>
+                <pre data-lang="JavaScript"><code>// ✅ $state - الحالة التفاعلية
+let showModal = $state(false);
+let selectedQuality = $state("360");
+
+// ✅ $props - خصائص المكون
+let { isOpen, title, children, onClose } = $props();
+
+// ✅ $derived - القيم المشتقة
+let isAudio = $derived(
+    appState.videoFilename?.match(/\.(mp3|wav|ogg|m4a)$/i)
+);
+
+// ✅ $effect - التأثيرات التفاعلية
+$effect(() => {
+    appState.theme;
+    setTimeout(() => updateThemeColors(), 50);
+});
+
+// ✅ $state.snapshot - نسخة ثابتة من الحالة
+const segments = $state.snapshot(appState.segments);</code></pre>
+
+                <div class="alert alert-warning">
+                    <strong>مهم:</strong> المشروع يستخدم Svelte 5 بالكامل. لا تستخدم <code>export let</code> أو <code>$:</code> أو <code>on:click</code>.
+                </div>
+            </section>
+
+            <!-- Section 7: State Management -->
+            <section id="state" class="section">
+                <h2>📦 7. إدارة الحالة</h2>
+
+                <h3>الحالة العامة - state.svelte.js</h3>
+                <pre data-lang="JavaScript"><code>export const appState = $state({
+    // وضع التشغيل
+    mode: 'upload',           // 'youtube' | 'upload'
+    activeTab: 'local',       // 'local' | 'youtube'
+    
+    // الفيديو المحلي
+    videoSrc: null,
+    videoFilename: null,
+    sessionId: null,
+    
+    // التشغيل
+    duration: 0,
+    currentTime: 0,
+    isPlaying: false,
+    playbackRate: 1.0,
+    
+    // المقاطع
+    segments: [],
+    currentStart: null,
+    
+    // YouTube
+    youtubePlayer: null,
+    youtubeUrl: '',
+    youtubeMetadata: null,
+    
+    // واجهة المستخدم
+    theme: 'midnight',
+    showAboutModal: false
+});</code></pre>
+
+                <h3>الدوال المساعدة</h3>
+                <ul>
+                    <li><code>formatTime(seconds)</code> - تنسيق الوقت mm:ss.ms</li>
+                    <li><code>addSegment(start, end)</code> - إضافة مقطع جديد</li>
+                    <li><code>sortSegments()</code> - ترتيب المقاطع</li>
+                    <li><code>resetState()</code> - إعادة تعيين الحالة</li>
+                </ul>
+            </section>
+
+            <!-- Section 8: i18n -->
+            <section id="i18n" class="section">
+                <h2>🌍 8. نظام الترجمة</h2>
+
+                <h3>الهيكل - i18n.svelte.js</h3>
+                <pre data-lang="JavaScript"><code>export const translations = {
+    ar: {
+        appTitleShort: "أفدنا القاطع",
+        youtube: "يوتوب",
+        localFile: "ملف محلي",
+        // ... 100+ مفتاح ترجمة
+    },
+    en: {
+        appTitleShort: "AFIDNA CUTTER",
+        youtube: "YouTube",
+        localFile: "Local File",
+        // ...
+    }
+};
+
+let currentLang = $state("ar");
+
+export const i18n = {
+    get lang() { return currentLang; },
+    set lang(v) { currentLang = v; },
+    t: (key) => translations[currentLang][key] || key
+};</code></pre>
+
+                <h3>الاستخدام</h3>
+                <pre data-lang="Svelte"><code>&lt;script&gt;
+    import { i18n } from "./stores/i18n.svelte.js";
+&lt;/script&gt;
+
+&lt;div dir={i18n.lang === "ar" ? "rtl" : "ltr"}&gt;
+    &lt;h1&gt;{i18n.t("appTitleLong")}&lt;/h1&gt;
+&lt;/div&gt;</code></pre>
+            </section>
+
+            <!-- Section 9: Theming -->
+            <section id="theming" class="section">
+                <h2>🎨 9. نظام السمات</h2>
+
+                <h3>السمات المتوفرة</h3>
+                <div class="card-grid">
+                    <div class="card" style="border-color: #7c3aed;">
+                        <div class="card-icon">🌑</div>
+                        <h4>Midnight</h4>
+                        <p>سمة داكنة مع لمسات بنفسجية</p>
+                        <code style="color: #7c3aed;">#7C3AED</code>
+                    </div>
+                    <div class="card" style="border-color: #0284c7;">
+                        <div class="card-icon">🌊</div>
+                        <h4>Ocean</h4>
+                        <p>سمة فاتحة مع لمسات زرقاء</p>
+                        <code style="color: #0284c7;">#0284C7</code>
+                    </div>
+                    <div class="card" style="border-color: #f97316;">
+                        <div class="card-icon">🌅</div>
+                        <h4>Sunset</h4>
+                        <p>سمة داكنة دافئة مع لمسات برتقالية</p>
+                        <code style="color: #f97316;">#F97316</code>
+                    </div>
+                </div>
+
+                <h3>التطبيق - app.css</h3>
+                <pre data-lang="CSS"><code>:root:has(.midnight), .midnight {
+    --color-base-100: #0F172A;
+    --color-primary: #7C3AED;
+    /* ... */
+}
+
+:root:has(.ocean), .ocean {
+    --color-base-100: #FFFFFF;
+    --color-primary: #0284C7;
+    /* ... */
+}</code></pre>
+            </section>
+
+            <!-- Section 10: Video Processing -->
+            <section id="video" class="section">
+                <h2>🎬 10. معالجة الفيديو</h2>
+
+                <h3>قص الفيديو المحلي</h3>
+                <pre data-lang="JavaScript"><code>ffmpeg(inputPath)
+    .setStartTime(start)
+    .setDuration(end - start)
+    .outputOptions(['-c copy'])  // نسخ بدون إعادة ترميز
+    .output(outputPath)
+    .on('end', () => resolve())
+    .on('error', (err) => reject(err))
+    .run();</code></pre>
+
+                <div class="alert alert-info">
+                    <strong>ملاحظة:</strong> استخدام <code>-c copy</code> يضمن سرعة القص مع الحفاظ على جودة الفيديو الأصلية.
+                </div>
+            </section>
+
+            <!-- Section 11: YouTube -->
+            <section id="youtube" class="section">
+                <h2>📺 11. تكامل YouTube</h2>
+
+                <h3>خوارزمية دمج المقاطع</h3>
+                <pre data-lang="JavaScript"><code>// دمج المقاطع التي بينها أقل من 5 ثوانٍ
+function mergeSegments(segments, gapThreshold = 5) {
+    if (!segments.length) return [];
+    const sorted = [...segments].sort((a, b) => a.start - b.start);
+    const chunks = [{ start: sorted[0].start, end: sorted[0].end }];
+    for (let i = 1; i < sorted.length; i++) {
+        const last = chunks[chunks.length - 1];
+        if (sorted[i].start <= last.end + gapThreshold) {
+            last.end = Math.max(last.end, sorted[i].end);
+        } else {
+            chunks.push({ start: sorted[i].start, end: sorted[i].end });
+        }
+    }
+    return chunks;
+}</code></pre>
+
+                <h3>حجب الإعلانات</h3>
+                <ul>
+                    <li><strong>مستوى الشبكة:</strong> <code>webRequest.onBeforeRequest</code></li>
+                    <li><strong>مستوى CSS:</strong> إخفاء عناصر الإعلانات</li>
+                    <li><strong>مستوى JS:</strong> تخطي الإعلانات تلقائياً</li>
+                </ul>
+            </section>
+
+            <!-- Section 12: Build -->
+            <section id="build" class="section">
+                <h2>📦 12. البناء والتوزيع</h2>
+
+                <h3>الأوامر</h3>
+                <div class="command-box">
+                    <span class="prefix">$</span>
+                    <code>yarn dev</code>
+                    <span style="color: var(--text-muted); margin-right: 1rem;"># وضع التطوير</span>
+                </div>
+                <div class="command-box">
+                    <span class="prefix">$</span>
+                    <code>yarn build</code>
+                    <span style="color: var(--text-muted); margin-right: 1rem;"># بناء Vite فقط</span>
+                </div>
+                <div class="command-box">
+                    <span class="prefix">$</span>
+                    <code>yarn dist</code>
+                    <span style="color: var(--text-muted); margin-right: 1rem;"># توزيع كامل</span>
+                </div>
+                <div class="command-box">
+                    <span class="prefix">$</span>
+                    <code>yarn dist --win</code>
+                    <span style="color: var(--text-muted); margin-right: 1rem;"># Windows فقط</span>
+                </div>
+
+                <h3>مسارات المخرجات</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>المنصة</th>
+                                <th>الملف</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>Linux</td><td><code>release/*.deb</code></td></tr>
+                            <tr><td>Windows</td><td><code>release/*Setup*.exe</code></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Section 13: Dev Environment -->
+            <section id="dev" class="section">
+                <h2>💻 13. بيئة التطوير</h2>
+
+                <h3>المتطلبات</h3>
+                <div class="command-box">
+                    <span class="prefix">$</span>
+                    <code>node --version  # v18+</code>
+                </div>
+                <div class="command-box">
+                    <span class="prefix">$</span>
+                    <code>sudo apt install ffmpeg yt-dlp</code>
+                </div>
+
+                <h3>الإعداد</h3>
+                <div class="command-box">
+                    <span class="prefix">$</span>
+                    <code>git clone https://github.com/salahAit/afidnaCutter.git</code>
+                </div>
+                <div class="command-box">
+                    <span class="prefix">$</span>
+                    <code>cd afidnaCutter && yarn install</code>
+                </div>
+                <div class="command-box">
+                    <span class="prefix">$</span>
+                    <code>yarn dev</code>
+                </div>
+            </section>
+
+            <!-- Section 14: Best Practices -->
+            <section id="practices" class="section">
+                <h2>✅ 14. الإرشادات والممارسات</h2>
+
+                <h3>Svelte 5 Guidelines</h3>
+                <pre data-lang="JavaScript"><code>// ✅ استخدم $state بدلاً من let للحالة التفاعلية
+let count = $state(0);
+
+// ✅ استخدم $props بدلاً من export let
+let { value } = $props();
+
+// ✅ استخدم $effect للتأثيرات الجانبية
+$effect(() => { /* ... */ });
+
+// ✅ استخدم onclick بدلاً من on:click
+&lt;button onclick={handler}&gt;
+
+// ✅ استخدم @render للمحتوى المُمرر
+{@render children()}</code></pre>
+
+                <h3>IPC Communication</h3>
+                <pre data-lang="JavaScript"><code>// ✅ استخدم invoke للعمليات async
+const result = await window.electron.invoke('cut-video', data);
+
+// ✅ استخدم on للأحداث المستمرة
+window.electron.on('download-progress', handler);</code></pre>
+            </section>
+
+            <!-- Section 15: Troubleshooting -->
+            <section id="troubleshooting" class="section">
+                <h2>🔧 15. استكشاف الأخطاء</h2>
+
+                <h3>أخطاء شائعة</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>المشكلة</th>
+                                <th>الحل</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><code>yt-dlp not found</code></td><td>تثبيت yt-dlp على النظام</td></tr>
+                            <tr><td><code>ffmpeg error</code></td><td>التأكد من تثبيت FFmpeg</td></tr>
+                            <tr><td><code>ENOTDIR</code> في الإنتاج</td><td>استخدام <code>app.getPath('userData')</code></td></tr>
+                            <tr><td>تحذيرات Svelte</td><td>استخدام Svelte 5 syntax</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>إعادة التعيين</h3>
+                <div class="command-box">
+                    <span class="prefix">$</span>
+                    <code>rm -rf node_modules yarn.lock && yarn install</code>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>📄 ISC License © 2025 <a href="https://github.com/salahAit">Salah Ait Amgran</a></p>
+        <p style="margin-top: 0.5rem;">جزء من مشروع <a href="https://afidna.cloud">أفدنا كلاود</a></p>
+    </footer>
+
+    <script>
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

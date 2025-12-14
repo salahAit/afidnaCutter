@@ -105,7 +105,7 @@
   function confirmQuality() {
     // Check if quality is available
     if (!isQualityAvailable(appState.youtubeQuality)) {
-      qualityWarning = `${i18n.t("quality")} ${qualityLabels[appState.youtubeQuality]} ${i18n.t("unavailable")}. ${i18n.t("availableQualities")}: ${getAvailableQualitiesText()}`;
+      qualityWarning = `${i18n.t("qualityUnavailable")}. ${i18n.t("availableQualities")}: ${getAvailableQualitiesText()}`;
       return;
     }
     qualityWarning = "";
@@ -247,7 +247,7 @@
           </div>
           <div class="flex gap-1">
             <button
-              class="btn btn-sm btn-square btn-secondary text-white"
+              class="btn btn-sm btn-square btn-secondary"
               onclick={() => cutSingleSegment(index)}
               title={i18n.t("cutSegment")}
             >
@@ -293,7 +293,7 @@
               >
             </button>
             <button
-              class="btn btn-sm btn-square btn-error text-white"
+              class="btn btn-sm btn-square btn-error"
               onclick={() => deleteSegment(index)}
               title={i18n.t("delete")}
             >
@@ -321,7 +321,7 @@
   <div class="p-4 border-t border-base-300">
     <button
       id="btn-cut"
-      class="btn btn-success w-full font-bold text-white"
+      class="btn btn-success w-full font-bold"
       disabled={appState.segments.length === 0}
       onclick={() => cutVideo()}
     >
@@ -384,7 +384,7 @@
       <div class="modal-action">
         <form method="dialog" class="flex gap-2 w-full">
           <button
-            class="btn btn-success flex-1 text-white"
+            class="btn btn-success flex-1"
             type="button"
             onclick={confirmQuality}>{i18n.t("confirm")}</button
           >
